@@ -576,7 +576,7 @@ class SmoothLoadingBarWithRunnerPainter extends CustomPainter {
 
   void _drawSmoothArms(
       Canvas canvas, Offset center, Paint paint, double runTime) {
-    final armLength = 8.0;
+    const armLength = 8.0;
     final leftArmAngle = math.sin(runTime * 2 * math.pi) * 0.6;
     final rightArmAngle = math.sin(runTime * 2 * math.pi + math.pi) * 0.6;
     canvas.drawLine(
@@ -600,7 +600,7 @@ class SmoothLoadingBarWithRunnerPainter extends CustomPainter {
 
   void _drawSmoothLegs(
       Canvas canvas, Offset center, Paint paint, double runTime) {
-    final legLength = 10.0;
+    const legLength = 10.0;
 
     final leftLegAngle = math.sin(runTime * 2 * math.pi + math.pi) * 0.8;
     final rightLegAngle = math.sin(runTime * 2 * math.pi) * 0.8;
