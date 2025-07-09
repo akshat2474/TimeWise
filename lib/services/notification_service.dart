@@ -1,6 +1,7 @@
 // In lib/services/notification_service.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 class NotificationService {
@@ -31,27 +32,35 @@ class NotificationService {
       macOS: initializationSettingsDarwin,
     );
     
-    // REMOVED: Timezone initialization is now handled in main.dart
-    // tz.initializeTimeZones();
-
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
     
     await requestPermissions();
   }
 
-  // ... (The rest of the file remains the same)
+  /// CORRECTED: Now requests the exact alarm permission in addition to standard notifications.
   Future<void> requestPermissions() async {
-    await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
+    final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+        flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
     
-    await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>()
-        ?.requestPermissions(
-          alert: true,
-          badge: true,
-          sound: true,
-        );
+    if (androidImplementation != null) {
+      // Request standard notification permission
+      await androidImplementation.requestNotificationsPermission();
+      // Request permission to schedule exact alarms
+      await androidImplementation.requestExactAlarmsPermission();
+    }
+    
+    final IOSFlutterLocalNotificationsPlugin? iOSImplementation =
+        flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>();
+
+    if (iOSImplementation != null) {
+      await iOSImplementation.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    }
   }
 
   Future<void> scheduleWeeklyAttendanceReminders() async {
@@ -68,16 +77,20 @@ class NotificationService {
     const NotificationDetails notificationDetails =
         NotificationDetails(android: androidNotificationDetails);
 
-    for (int i = 1; i <= 5; i++) { // 1=Monday, 5=Friday
-      await flutterLocalNotificationsPlugin.zonedSchedule(
-        i, // Unique ID for each day's notification
-        'TimeWise Reminder',
-        'Don\'t forget to mark your attendance for today!',
-        _nextInstanceOfSixPM(i),
-        notificationDetails,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
-      );
+    for (int i = 1; i <= 5; i++) {
+      try {
+        await flutterLocalNotificationsPlugin.zonedSchedule(
+          i,
+          'TimeWise Reminder',
+          'Don\'t forget to mark your attendance for today!',
+          _nextInstanceOfSixPM(i),
+          notificationDetails,
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+        );
+      } catch (e) {
+        debugPrint('Error scheduling notification for day $i: $e');
+      }
     }
   }
 
