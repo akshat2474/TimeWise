@@ -23,8 +23,7 @@ class TimetableManagementScreen extends StatefulWidget {
   const TimetableManagementScreen({Key? key}) : super(key: key);
 
   @override
-  State<TimetableManagementScreen> createState() =>
-      _TimetableManagementScreenState();
+  State<TimetableManagementScreen> createState() => _TimetableManagementScreenState();
 }
 
 class _TimetableManagementScreenState extends State<TimetableManagementScreen> {
@@ -113,8 +112,7 @@ class _TimetableManagementScreenState extends State<TimetableManagementScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    const TimetableGridScreen(),
+                                builder: (context) => const TimetableGridScreen(),
                               ),
                             );
                           },
@@ -123,6 +121,7 @@ class _TimetableManagementScreenState extends State<TimetableManagementScreen> {
                     ],
                   ),
                 ),
+                
                 Expanded(
                   child: ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -244,17 +243,18 @@ class _TimetableManagementScreenState extends State<TimetableManagementScreen> {
               ],
             ),
           ),
+          
           Row(
             children: [
               IconButton(
                 onPressed: () => _toggleTemplate(template),
                 icon: Icon(
                   template.isActive ? Icons.toggle_on : Icons.toggle_off,
-                  color:
-                      template.isActive ? Colors.blue[400] : Colors.grey[600],
+                  color: template.isActive ? Colors.blue[400] : Colors.grey[600],
                   size: 28,
                 ),
               ),
+              
               PopupMenuButton<String>(
                 color: Colors.grey[800],
                 icon: Icon(
@@ -279,8 +279,7 @@ class _TimetableManagementScreenState extends State<TimetableManagementScreen> {
                       children: [
                         Icon(Icons.copy, color: Colors.white, size: 18),
                         SizedBox(width: 8),
-                        Text('Duplicate',
-                            style: TextStyle(color: Colors.white)),
+                        Text('Duplicate', style: TextStyle(color: Colors.white)),
                       ],
                     ),
                   ),
@@ -341,7 +340,7 @@ class _TimetableManagementScreenState extends State<TimetableManagementScreen> {
         subjects: List.from(template.subjects),
       ));
     });
-
+    
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Template "${template.name}" duplicated successfully'),
@@ -354,8 +353,7 @@ class _TimetableManagementScreenState extends State<TimetableManagementScreen> {
     if (template.isActive && _templates.length > 1) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-              'Cannot delete active template. Please activate another template first.'),
+          content: Text('Cannot delete active template. Please activate another template first.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -410,7 +408,7 @@ class _TimetableManagementScreenState extends State<TimetableManagementScreen> {
 
   void _showAddTemplateDialog() {
     final nameController = TextEditingController();
-
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -498,8 +496,7 @@ class _TimetableManagementScreenState extends State<TimetableManagementScreen> {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(
-                        'Template "${nameController.text.trim()}" added successfully'),
+                    content: Text('Template "${nameController.text.trim()}" added successfully'),
                     backgroundColor: Colors.green,
                   ),
                 );
@@ -521,7 +518,7 @@ class _TimetableManagementScreenState extends State<TimetableManagementScreen> {
 
   void _showEditTemplateDialog(TimetableTemplate template) {
     final nameController = TextEditingController(text: template.name);
-
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -602,8 +599,7 @@ class _TimetableManagementScreenState extends State<TimetableManagementScreen> {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(
-                        'Template updated to "${nameController.text.trim()}"'),
+                    content: Text('Template updated to "${nameController.text.trim()}"'),
                     backgroundColor: Colors.blue,
                   ),
                 );
