@@ -1,5 +1,3 @@
-// In lib/screens/home_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'subject_setup_screen.dart';
@@ -17,7 +15,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
-    // CORRECTED: This now correctly watches the TimetableModel for changes.
     final model = context.watch<TimetableModel>();
     final hasExistingTimetable = model.subjects.isNotEmpty;
 
@@ -83,7 +80,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => SubjectSetupScreen(
-                          existingSubjects: hasExistingTimetable ? model.subjects : null,
+                          existingSubjects:
+                              hasExistingTimetable ? model.subjects : null,
                           isEditing: hasExistingTimetable,
                         ),
                       ),
@@ -112,7 +110,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              // This entire section will now appear correctly once a timetable is set up.
               if (hasExistingTimetable) ...[
                 const Text(
                   'Reminders',
@@ -142,20 +139,24 @@ class _HomeScreenState extends State<HomeScreen> {
                           Expanded(
                             child: OutlinedButton.icon(
                               onPressed: () {
-                                NotificationService().scheduleWeeklyAttendanceReminders();
+                                NotificationService()
+                                    .scheduleWeeklyAttendanceReminders();
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Attendance reminders scheduled!'),
+                                    content:
+                                        Text('Attendance reminders scheduled!'),
                                     backgroundColor: Colors.green,
                                   ),
                                 );
                               },
-                              icon: const Icon(Icons.notifications_active, size: 18),
+                              icon: const Icon(Icons.notifications_active,
+                                  size: 18),
                               label: const Text('Enable'),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: Colors.green,
                                 side: const BorderSide(color: Colors.green),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
                               ),
                             ),
                           ),
@@ -171,12 +172,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 );
                               },
-                              icon: const Icon(Icons.notifications_off, size: 18),
+                              icon:
+                                  const Icon(Icons.notifications_off, size: 18),
                               label: const Text('Disable'),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: Colors.red,
                                 side: const BorderSide(color: Colors.red),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
                               ),
                             ),
                           ),
@@ -210,10 +213,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           Expanded(
                             child: OutlinedButton(
                               onPressed: () {
-                                NotificationService().checkPendingNotifications();
+                                NotificationService()
+                                    .checkPendingNotifications();
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Checked schedule. See debug console.'),
+                                    content: Text(
+                                        'Checked schedule. See debug console.'),
                                     backgroundColor: Colors.purple,
                                   ),
                                 );
@@ -225,7 +230,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           Expanded(
                             child: OutlinedButton(
                               onPressed: () {
-                                NotificationService().testImmediateNotification();
+                                NotificationService()
+                                    .testImmediateNotification();
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text('Immediate test scheduled!'),

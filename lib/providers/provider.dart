@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Holds subject names, the weekly timetable and attendance data.
-/// All widgets that read this provider will rebuild automatically
-/// when any piece of data changes.
 class TimeWiseProvider extends ChangeNotifier {
-  /* ──────────────────────────  SUBJECTS  ────────────────────────── */
-
-  /// List of subject names as entered by the user.
   final List<String> _subjects = [];
 
   List<String> get subjects => List.unmodifiable(_subjects);
@@ -19,10 +13,6 @@ class TimeWiseProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /* ──────────────────────────  TIMETABLE  ───────────────────────── */
-
-  /// Keys: day ➜ time-slot ➜ ClassInfo (or null if empty).
-  /// Days = Mon–Fri, slots = ten one-hour blocks from 8 am–6 pm.
   final Map<String, Map<String, ClassInfo?>> _timetable = {};
 
   Map<String, Map<String, ClassInfo?>> get timetable =>
@@ -35,8 +25,6 @@ class TimeWiseProvider extends ChangeNotifier {
   }) {
     _ensureDay(day);
     _timetable[day]![time] = info;
-
-    // If a 2-hour class is placed, automatically block the next slot.
     if (info.duration == 2) {
       final nextIndex = _timeSlots.indexOf(time) + 1;
       if (nextIndex < _timeSlots.length) {
@@ -51,8 +39,6 @@ class TimeWiseProvider extends ChangeNotifier {
     _ensureDay(day);
     final removed = _timetable[day]![time];
     _timetable[day]![time] = null;
-
-    // If the removed class was a 2-hour block, clear its continuation too.
     if (removed?.duration == 2) {
       final nextIndex = _timeSlots.indexOf(time) + 1;
       if (nextIndex < _timeSlots.length) {
@@ -65,9 +51,6 @@ class TimeWiseProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /* ─────────────────────────  ATTENDANCE  ───────────────────────── */
-
-  /// attendance[subject]['theory' | 'practical'] = {'attended': X, 'total': Y}
   final Map<String, Map<String, Map<String, int>>> _attendance = {};
 
   Map<String, Map<String, Map<String, int>>> get attendance =>
@@ -87,8 +70,6 @@ class TimeWiseProvider extends ChangeNotifier {
     }
     notifyListeners();
   }
-
-  /* ───────────────────────────── HELPERS ────────────────────────── */
 
   static const List<String> _timeSlots = [
     '8:00-9:00',
@@ -120,7 +101,6 @@ class TimeWiseProvider extends ChangeNotifier {
       ));
   }
 
-  /// Deep unmodifiable helper to prevent external mutation.
   static T _deepUnmodifiable<T>(T value) {
     if (value is Map) {
       return Map.unmodifiable(
@@ -134,13 +114,11 @@ class TimeWiseProvider extends ChangeNotifier {
   }
 }
 
-/* ─────────────────────────── CLASS MODEL ────────────────────────── */
-
 class ClassInfo {
   final String subject;
-  final int duration;        // 1 or 2 hours
-  final bool isTheory;       // true = Theory, false = Practical
-  final bool isContinuation; // true only for the second hour of a 2-hour block
+  final int duration;
+  final bool isTheory;
+  final bool isContinuation;
 
   ClassInfo({
     required this.subject,

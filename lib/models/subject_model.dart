@@ -1,15 +1,16 @@
 import 'package:uuid/uuid.dart';
 
 enum SubjectType { theory, practical, elective }
+
 enum CreditType { fourCredit, twoCredit }
 
 class Subject {
-  final String id; // UUID for stable identification
+  final String id;
   String name;
   final bool hasPractical;
   final CreditType creditType;
   final SubjectType subjectType;
-  
+
   Subject({
     String? id,
     required this.name,
@@ -17,28 +18,25 @@ class Subject {
     required this.creditType,
     required this.subjectType,
   }) : id = id ?? const Uuid().v4();
-
-  // Calculate total hours based on credit and type
   int get totalTheoryHours {
     if (creditType == CreditType.fourCredit) {
-      return hasPractical ? 42 : 42; // 4-credit: 42 theory (with or without practical)
+      return hasPractical ? 42 : 42;
     } else {
-      // 2-credit
       if (subjectType == SubjectType.elective) {
-        return 28; // 2-credit elective: 28 hours total
+        return 28;
       } else {
-        return 14; // 2-credit practical: 14 theory + 28 practical
+        return 14;
       }
     }
   }
 
   int get totalPracticalHours {
     if (!hasPractical) return 0;
-    
+
     if (creditType == CreditType.fourCredit) {
-      return 28; // 4-credit practical: 28 practical hours
+      return 28;
     } else {
-      return 28; // 2-credit practical: 28 practical hours
+      return 28;
     }
   }
 
@@ -46,7 +44,7 @@ class Subject {
 
   String get creditDescription {
     if (creditType == CreditType.fourCredit) {
-      return hasPractical 
+      return hasPractical
           ? '4-Credit (42h Theory + 28h Practical)'
           : '4-Credit Theory (42h)';
     } else {
@@ -82,7 +80,6 @@ class Subject {
     );
   }
 
-  // Create a copy with updated name (keeping same ID)
   Subject copyWith({String? name}) {
     return Subject(
       id: id,

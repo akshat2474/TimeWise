@@ -1,4 +1,3 @@
-// In timetable_model.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -11,14 +10,14 @@ class ClassInfo {
   final ClassType type;
   final int duration;
   final bool isBlockedSlot;
-  final String? timeSlot; // Added to hold the time slot string
+  final String? timeSlot;
 
   ClassInfo({
     required this.subject,
     required this.type,
     required this.duration,
     this.isBlockedSlot = false,
-    this.timeSlot, // Added to the constructor
+    this.timeSlot,
   });
 
   bool get isTheory => type == ClassType.theory;
@@ -29,7 +28,7 @@ class ClassInfo {
       'type': type.name,
       'duration': duration,
       'isBlockedSlot': isBlockedSlot,
-      'timeSlot': timeSlot, // Added for serialization
+      'timeSlot': timeSlot,
     };
   }
 
@@ -39,7 +38,7 @@ class ClassInfo {
       type: ClassType.values.firstWhere((e) => e.name == json['type']),
       duration: json['duration'],
       isBlockedSlot: json['isBlockedSlot'] ?? false,
-      timeSlot: json['timeSlot'], // Added for deserialization
+      timeSlot: json['timeSlot'],
     );
   }
 }
@@ -145,9 +144,12 @@ class AttendanceSummary {
     }
   }
 
-  double get percentage => totalHoursHeld == 0 ? 0.0 : (totalHoursAttended / totalHoursHeld) * 100;
+  double get percentage =>
+      totalHoursHeld == 0 ? 0.0 : (totalHoursAttended / totalHoursHeld) * 100;
 
-  double get percentageExclMassBunk => hoursHeldExclMassBunk == 0 ? 0.0 : (hoursAttendedExclMassBunk / hoursHeldExclMassBunk) * 100;
+  double get percentageExclMassBunk => hoursHeldExclMassBunk == 0
+      ? 0.0
+      : (hoursAttendedExclMassBunk / hoursHeldExclMassBunk) * 100;
 
   double get hoursCanMiss {
     final requiredAttendance = totalScheduledHours * 0.75;
@@ -170,9 +172,12 @@ class AttendanceSummary {
     final summary = AttendanceSummary();
     summary.totalHoursHeld = json['totalHoursHeld']?.toDouble() ?? 0.0;
     summary.totalHoursAttended = json['totalHoursAttended']?.toDouble() ?? 0.0;
-    summary.hoursHeldExclMassBunk = json['hoursHeldExclMassBunk']?.toDouble() ?? 0.0;
-    summary.hoursAttendedExclMassBunk = json['hoursAttendedExclMassBunk']?.toDouble() ?? 0.0;
-    summary.totalScheduledHours = json['totalScheduledHours']?.toDouble() ?? 0.0;
+    summary.hoursHeldExclMassBunk =
+        json['hoursHeldExclMassBunk']?.toDouble() ?? 0.0;
+    summary.hoursAttendedExclMassBunk =
+        json['hoursAttendedExclMassBunk']?.toDouble() ?? 0.0;
+    summary.totalScheduledHours =
+        json['totalScheduledHours']?.toDouble() ?? 0.0;
     return summary;
   }
 }
@@ -183,15 +188,29 @@ class TimetableModel extends ChangeNotifier {
   List<AttendanceRecord> _attendanceRecords = [];
   List<Subject> _subjects = [];
 
-  final List<String> _days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+  final List<String> _days = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday'
+  ];
   final List<String> _timeSlots = [
-    '8:00-9:00', '9:00-10:00', '10:00-11:00', '11:00-12:00',
-    '12:00-1:00', '1:00-2:00', '2:00-3:00', '3:00-4:00',
-    '4:00-5:00', '5:00-6:00'
+    '8:00-9:00',
+    '9:00-10:00',
+    '10:00-11:00',
+    '11:00-12:00',
+    '12:00-1:00',
+    '1:00-2:00',
+    '2:00-3:00',
+    '3:00-4:00',
+    '4:00-5:00',
+    '5:00-6:00'
   ];
 
   Map<String, Map<String, ClassInfo?>> get timetable => _timetable;
-  Map<String, Map<String, AttendanceSummary>> get attendanceData => _attendanceData;
+  Map<String, Map<String, AttendanceSummary>> get attendanceData =>
+      _attendanceData;
   List<AttendanceRecord> get attendanceRecords => _attendanceRecords;
   List<Subject> get subjects => _subjects;
   List<String> get days => _days;
@@ -213,8 +232,10 @@ class TimetableModel extends ChangeNotifier {
         newAttendanceData[subject.name] = _attendanceData[subject.name]!;
       } else {
         newAttendanceData[subject.name] = {
-          'theory': AttendanceSummary(totalScheduledHours: subject.totalTheoryHours.toDouble()),
-          'practical': AttendanceSummary(totalScheduledHours: subject.totalPracticalHours.toDouble()),
+          'theory': AttendanceSummary(
+              totalScheduledHours: subject.totalTheoryHours.toDouble()),
+          'practical': AttendanceSummary(
+              totalScheduledHours: subject.totalPracticalHours.toDouble()),
         };
       }
     }
@@ -242,9 +263,8 @@ class TimetableModel extends ChangeNotifier {
           if (dayData != null) {
             for (String timeSlot in _timeSlots) {
               final classData = dayData[timeSlot];
-              _timetable[day]![timeSlot] = classData != null
-                  ? ClassInfo.fromJson(classData)
-                  : null;
+              _timetable[day]![timeSlot] =
+                  classData != null ? ClassInfo.fromJson(classData) : null;
             }
           } else {
             for (String timeSlot in _timeSlots) {
@@ -256,15 +276,19 @@ class TimetableModel extends ChangeNotifier {
         _initializeTimetable();
       }
 
-      final attendanceRecordsJson = prefs.getString('timewise_attendance_records');
+      final attendanceRecordsJson =
+          prefs.getString('timewise_attendance_records');
       if (attendanceRecordsJson != null) {
         final recordsList = jsonDecode(attendanceRecordsJson) as List;
-        _attendanceRecords = recordsList.map((json) => AttendanceRecord.fromJson(json)).toList();
+        _attendanceRecords =
+            recordsList.map((json) => AttendanceRecord.fromJson(json)).toList();
       }
 
-      final attendanceSummaryJson = prefs.getString('timewise_attendance_summary');
+      final attendanceSummaryJson =
+          prefs.getString('timewise_attendance_summary');
       if (attendanceSummaryJson != null) {
-        final summaryData = jsonDecode(attendanceSummaryJson) as Map<String, dynamic>;
+        final summaryData =
+            jsonDecode(attendanceSummaryJson) as Map<String, dynamic>;
         _attendanceData = {};
         for (String subjectName in summaryData.keys) {
           final subjectData = summaryData[subjectName] as Map<String, dynamic>;
@@ -300,7 +324,8 @@ class TimetableModel extends ChangeNotifier {
     }
     await prefs.setString('timewise_timetable', jsonEncode(timetableData));
 
-    final recordsJson = jsonEncode(_attendanceRecords.map((r) => r.toJson()).toList());
+    final recordsJson =
+        jsonEncode(_attendanceRecords.map((r) => r.toJson()).toList());
     await prefs.setString('timewise_attendance_records', recordsJson);
 
     final summaryData = {};
@@ -310,7 +335,8 @@ class TimetableModel extends ChangeNotifier {
         'practical': _attendanceData[subjectName]!['practical']!.toJson(),
       };
     }
-    await prefs.setString('timewise_attendance_summary', jsonEncode(summaryData));
+    await prefs.setString(
+        'timewise_attendance_summary', jsonEncode(summaryData));
   }
 
   void updateSubjects(List<Subject> newSubjects) {
@@ -354,8 +380,8 @@ class TimetableModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void markAttendance(String subjectName, String classType, AttendanceStatus status,
-      DateTime date, String timeSlot, double hours) {
+  void markAttendance(String subjectName, String classType,
+      AttendanceStatus status, DateTime date, String timeSlot, double hours) {
     final existingIndex = _attendanceRecords.indexWhere((record) =>
         record.subjectName == subjectName &&
         record.classType == classType &&
@@ -366,15 +392,24 @@ class TimetableModel extends ChangeNotifier {
 
     if (existingIndex != -1) {
       final oldRecord = _attendanceRecords[existingIndex];
-      _attendanceData[subjectName]![classType]!.removeEntry(oldRecord.status, oldRecord.hours);
+      _attendanceData[subjectName]![classType]!
+          .removeEntry(oldRecord.status, oldRecord.hours);
       _attendanceRecords[existingIndex] = AttendanceRecord(
-        subjectName: subjectName, classType: classType, status: status,
-        date: date, timeSlot: timeSlot, hours: hours,
+        subjectName: subjectName,
+        classType: classType,
+        status: status,
+        date: date,
+        timeSlot: timeSlot,
+        hours: hours,
       );
     } else {
       _attendanceRecords.add(AttendanceRecord(
-        subjectName: subjectName, classType: classType, status: status,
-        date: date, timeSlot: timeSlot, hours: hours,
+        subjectName: subjectName,
+        classType: classType,
+        status: status,
+        date: date,
+        timeSlot: timeSlot,
+        hours: hours,
       ));
     }
     _attendanceData[subjectName]![classType]!.addEntry(status, hours);
@@ -382,8 +417,8 @@ class TimetableModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  AttendanceStatus? getAttendanceStatus(String subjectName, String classType,
-      DateTime date, String timeSlot) {
+  AttendanceStatus? getAttendanceStatus(
+      String subjectName, String classType, DateTime date, String timeSlot) {
     try {
       final record = _attendanceRecords.firstWhere((r) =>
           r.subjectName == subjectName &&
@@ -417,7 +452,9 @@ class TimetableModel extends ChangeNotifier {
     if (currentIndex > 0) {
       final previousSlot = _timeSlots[currentIndex - 1];
       final previousClass = _timetable[day]![previousSlot];
-      return previousClass != null && previousClass.duration == 2 && !previousClass.isBlockedSlot;
+      return previousClass != null &&
+          previousClass.duration == 2 &&
+          !previousClass.isBlockedSlot;
     }
     return false;
   }
@@ -434,7 +471,7 @@ class TimetableModel extends ChangeNotifier {
             type: classInfo.type,
             duration: classInfo.duration,
             isBlockedSlot: classInfo.isBlockedSlot,
-            timeSlot: entry.key, // Ensure timeSlot is included
+            timeSlot: entry.key,
           ));
         }
       }

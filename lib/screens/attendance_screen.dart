@@ -1,4 +1,3 @@
-// In attendance_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'timetable_grid_screen.dart';
@@ -13,12 +12,16 @@ class AttendanceScreen extends StatefulWidget {
 
 class _AttendanceScreenState extends State<AttendanceScreen> {
   String _selectedDay = 'Monday';
-  final List<String> _days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-
-  /// Helper function to get the correct DateTime for the selected day of the current week.
+  final List<String> _days = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday'
+  ];
   DateTime _getDateForSelectedDay(String day) {
     final now = DateTime.now();
-    final currentWeekday = now.weekday; // Monday is 1, Sunday is 7
+    final currentWeekday = now.weekday;
     final selectedWeekday = _days.indexOf(day) + 1;
     final dayDifference = selectedWeekday - currentWeekday;
     final selectedDate = now.add(Duration(days: dayDifference));
@@ -40,7 +43,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.grey[900],
-      isScrollControlled: true, // Important for scrollable bottom sheets
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -48,20 +51,21 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
-        child: SingleChildScrollView( // Wrap with SingleChildScrollView
+        child: SingleChildScrollView(
           child: Container(
             padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header
                 Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: classInfo.isTheory ? Colors.blue[600] : Colors.green[600],
+                        color: classInfo.isTheory
+                            ? Colors.blue[600]
+                            : Colors.green[600],
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
@@ -96,7 +100,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   ],
                 ),
                 const SizedBox(height: 24),
-
                 if (currentStatus != null) ...[
                   Container(
                     padding: const EdgeInsets.all(12),
@@ -147,8 +150,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   ),
                   const SizedBox(height: 16),
                 ],
-
-                // Attendance Options
                 Row(
                   children: [
                     Expanded(
@@ -159,7 +160,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         onTap: () {
                           _markAttendance(classInfo, AttendanceStatus.present);
                           Navigator.pop(context);
-                          _showStatusMessage('Marked as Present for ${classInfo.subject.name}', Colors.green);
+                          _showStatusMessage(
+                              'Marked as Present for ${classInfo.subject.name}',
+                              Colors.green);
                         },
                       ),
                     ),
@@ -172,7 +175,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         onTap: () {
                           _markAttendance(classInfo, AttendanceStatus.absent);
                           Navigator.pop(context);
-                          _showStatusMessage('Marked as Absent for ${classInfo.subject.name}', Colors.red);
+                          _showStatusMessage(
+                              'Marked as Absent for ${classInfo.subject.name}',
+                              Colors.red);
                         },
                       ),
                     ),
@@ -189,7 +194,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         onTap: () {
                           _markAttendance(classInfo, AttendanceStatus.holiday);
                           Navigator.pop(context);
-                          _showStatusMessage('Marked as Holiday for ${classInfo.subject.name}', Colors.grey);
+                          _showStatusMessage(
+                              'Marked as Holiday for ${classInfo.subject.name}',
+                              Colors.grey);
                         },
                       ),
                     ),
@@ -202,7 +209,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         onTap: () {
                           _markAttendance(classInfo, AttendanceStatus.massBunk);
                           Navigator.pop(context);
-                          _showStatusMessage('Marked as Mass Bunk for ${classInfo.subject.name}', Colors.orange);
+                          _showStatusMessage(
+                              'Marked as Mass Bunk for ${classInfo.subject.name}',
+                              Colors.orange);
                         },
                       ),
                     ),
@@ -217,9 +226,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         label: 'Teacher Absent',
                         color: Colors.purple,
                         onTap: () {
-                          _markAttendance(classInfo, AttendanceStatus.teacherAbsent);
+                          _markAttendance(
+                              classInfo, AttendanceStatus.teacherAbsent);
                           Navigator.pop(context);
-                          _showStatusMessage('Marked as Teacher Absent for ${classInfo.subject.name}', Colors.purple);
+                          _showStatusMessage(
+                              'Marked as Teacher Absent for ${classInfo.subject.name}',
+                              Colors.purple);
                         },
                       ),
                     ),
@@ -286,31 +298,46 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   String _getStatusText(AttendanceStatus status) {
     switch (status) {
-      case AttendanceStatus.present: return 'Present';
-      case AttendanceStatus.absent: return 'Absent';
-      case AttendanceStatus.holiday: return 'Holiday';
-      case AttendanceStatus.massBunk: return 'Mass Bunk';
-      case AttendanceStatus.teacherAbsent: return 'Teacher Absent';
+      case AttendanceStatus.present:
+        return 'Present';
+      case AttendanceStatus.absent:
+        return 'Absent';
+      case AttendanceStatus.holiday:
+        return 'Holiday';
+      case AttendanceStatus.massBunk:
+        return 'Mass Bunk';
+      case AttendanceStatus.teacherAbsent:
+        return 'Teacher Absent';
     }
   }
 
   Color _getStatusColor(AttendanceStatus status) {
     switch (status) {
-      case AttendanceStatus.present: return Colors.green;
-      case AttendanceStatus.absent: return Colors.red;
-      case AttendanceStatus.holiday: return Colors.grey;
-      case AttendanceStatus.massBunk: return Colors.orange;
-      case AttendanceStatus.teacherAbsent: return Colors.purple;
+      case AttendanceStatus.present:
+        return Colors.green;
+      case AttendanceStatus.absent:
+        return Colors.red;
+      case AttendanceStatus.holiday:
+        return Colors.grey;
+      case AttendanceStatus.massBunk:
+        return Colors.orange;
+      case AttendanceStatus.teacherAbsent:
+        return Colors.purple;
     }
   }
 
   IconData _getStatusIcon(AttendanceStatus status) {
     switch (status) {
-      case AttendanceStatus.present: return Icons.check_circle;
-      case AttendanceStatus.absent: return Icons.cancel;
-      case AttendanceStatus.holiday: return Icons.beach_access;
-      case AttendanceStatus.massBunk: return Icons.group_off;
-      case AttendanceStatus.teacherAbsent: return Icons.person_off;
+      case AttendanceStatus.present:
+        return Icons.check_circle;
+      case AttendanceStatus.absent:
+        return Icons.cancel;
+      case AttendanceStatus.holiday:
+        return Icons.beach_access;
+      case AttendanceStatus.massBunk:
+        return Icons.group_off;
+      case AttendanceStatus.teacherAbsent:
+        return Icons.person_off;
     }
   }
 
@@ -358,9 +385,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   color: Colors.green[600],
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.schedule, color: Colors.white, size: 20),
+                child:
+                    const Icon(Icons.schedule, color: Colors.white, size: 20),
               ),
-              title: const Text('Edit Timetable', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+              title: const Text('Edit Timetable',
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.w500)),
               subtitle: Text(
                 'Modify class schedule and timings',
                 style: TextStyle(color: Colors.grey[400], fontSize: 12),
@@ -369,7 +399,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const TimetableGridScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => const TimetableGridScreen()),
                 );
               },
             ),
@@ -387,11 +418,18 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           context: context,
           builder: (context) => AlertDialog(
             backgroundColor: Colors.grey[900],
-            title: const Text('Leave Attendance Tracker?', style: TextStyle(color: Colors.white)),
-            content: const Text('Your attendance data will be saved. Are you sure you want to go back?', style: TextStyle(color: Colors.white70)),
+            title: const Text('Leave Attendance Tracker?',
+                style: TextStyle(color: Colors.white)),
+            content: const Text(
+                'Your attendance data will be saved. Are you sure you want to go back?',
+                style: TextStyle(color: Colors.white70)),
             actions: [
-              TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-              TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Leave')),
+              TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel')),
+              TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Leave')),
             ],
           ),
         );
@@ -425,7 +463,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             body: SafeArea(
               child: Column(
                 children: [
-                  // Day Selection
                   Container(
                     margin: const EdgeInsets.all(16),
                     padding: const EdgeInsets.all(4),
@@ -442,14 +479,18 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               decoration: BoxDecoration(
-                                color: isSelected ? Colors.white : Colors.transparent,
+                                color: isSelected
+                                    ? Colors.white
+                                    : Colors.transparent,
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
                                 day.substring(0, 3),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  color: isSelected ? Colors.black : Colors.grey[400],
+                                  color: isSelected
+                                      ? Colors.black
+                                      : Colors.grey[400],
                                   fontWeight: FontWeight.w500,
                                   fontSize: 13,
                                 ),
@@ -460,18 +501,21 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       }).toList(),
                     ),
                   ),
-
-                  // Content Area
                   Expanded(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Classes for $_selectedDay', style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w500)),
+                          Text('Classes for $_selectedDay',
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w500)),
                           const SizedBox(height: 16),
                           ...classesForSelectedDay.map((classInfo) {
-                            final dateForStatus = _getDateForSelectedDay(_selectedDay);
+                            final dateForStatus =
+                                _getDateForSelectedDay(_selectedDay);
                             final status = classInfo.timeSlot == null
                                 ? null
                                 : model.getAttendanceStatus(
@@ -490,7 +534,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                     color: Colors.grey[900],
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: classInfo.isTheory ? Colors.blue : Colors.green,
+                                      color: classInfo.isTheory
+                                          ? Colors.blue
+                                          : Colors.green,
                                       width: 2,
                                     ),
                                   ),
@@ -498,30 +544,56 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                     children: [
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Row(
                                               children: [
-                                                Text(classInfo.subject.name, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500)),
+                                                Text(classInfo.subject.name,
+                                                    style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.w500)),
                                                 const SizedBox(width: 8),
                                                 Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 4),
                                                   decoration: BoxDecoration(
-                                                    color: classInfo.isTheory ? Colors.blue : Colors.green,
-                                                    borderRadius: BorderRadius.circular(12),
+                                                    color: classInfo.isTheory
+                                                        ? Colors.blue
+                                                        : Colors.green,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
                                                   ),
                                                   child: Text(
-                                                    classInfo.isTheory ? 'Theory' : 'Practical',
-                                                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
+                                                    classInfo.isTheory
+                                                        ? 'Theory'
+                                                        : 'Practical',
+                                                    style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.w500),
                                                   ),
                                                 ),
                                               ],
                                             ),
                                             const SizedBox(height: 8),
-                                            Text('Duration: ${classInfo.duration}h', style: TextStyle(color: Colors.grey[400], fontSize: 14)),
+                                            Text(
+                                                'Duration: ${classInfo.duration}h',
+                                                style: TextStyle(
+                                                    color: Colors.grey[400],
+                                                    fontSize: 14)),
                                             Text(
                                               'Time: ${classInfo.timeSlot ?? 'N/A'}',
-                                              style: TextStyle(color: Colors.grey[400], fontSize: 12, fontStyle: FontStyle.italic),
+                                              style: TextStyle(
+                                                  color: Colors.grey[400],
+                                                  fontSize: 12,
+                                                  fontStyle: FontStyle.italic),
                                             ),
                                           ],
                                         ),
@@ -530,17 +602,28 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                         Container(
                                           padding: const EdgeInsets.all(8),
                                           decoration: BoxDecoration(
-                                            color: _getStatusColor(status).withOpacity(0.2),
-                                            borderRadius: BorderRadius.circular(8),
-                                            border: Border.all(color: _getStatusColor(status), width: 1),
+                                            color: _getStatusColor(status)
+                                                .withOpacity(0.2),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            border: Border.all(
+                                                color: _getStatusColor(status),
+                                                width: 1),
                                           ),
-                                          child: Icon(_getStatusIcon(status), color: _getStatusColor(status), size: 20),
+                                          child: Icon(_getStatusIcon(status),
+                                              color: _getStatusColor(status),
+                                              size: 20),
                                         )
                                       else
                                         Container(
                                           padding: const EdgeInsets.all(8),
-                                          decoration: BoxDecoration(color: Colors.grey[700], borderRadius: BorderRadius.circular(8)),
-                                          child: Icon(Icons.touch_app, color: Colors.grey[400], size: 20),
+                                          decoration: BoxDecoration(
+                                              color: Colors.grey[700],
+                                              borderRadius:
+                                                  BorderRadius.circular(8)),
+                                          child: Icon(Icons.touch_app,
+                                              color: Colors.grey[400],
+                                              size: 20),
                                         ),
                                     ],
                                   ),
@@ -548,15 +631,18 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               ),
                             );
                           }).toList(),
-
                           const SizedBox(height: 32),
-
-                          // Attendance Summary
-                          const Text('Attendance Summary', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w500)),
+                          const Text('Attendance Summary',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w500)),
                           const SizedBox(height: 16),
                           ...model.subjects.map((subject) {
-                            final theoryData = model.attendanceData[subject.name]!['theory']!;
-                            final practicalData = model.attendanceData[subject.name]!['practical']!;
+                            final theoryData =
+                                model.attendanceData[subject.name]!['theory']!;
+                            final practicalData = model
+                                .attendanceData[subject.name]!['practical']!;
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 16),
                               child: Container(
@@ -564,7 +650,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 decoration: BoxDecoration(
                                   color: Colors.grey[900],
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.grey[700]!, width: 1),
+                                  border: Border.all(
+                                      color: Colors.grey[700]!, width: 1),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -572,106 +659,224 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                     SizedBox(
                                       height: 48,
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
                                         children: [
-                                          Text(subject.name, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500)),
+                                          Text(subject.name,
+                                              style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w500)),
                                           Text(
                                             subject.creditDescription,
-                                            style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                                            style: TextStyle(
+                                                color: Colors.grey[500],
+                                                fontSize: 11),
                                           ),
                                         ],
                                       ),
                                     ),
                                     const SizedBox(height: 16),
-                                    
-                                    // Theory Stats
                                     if (theoryData.totalScheduledHours > 0) ...[
                                       Row(
                                         children: [
-                                          Icon(Icons.book, color: Colors.blue[400], size: 16),
+                                          Icon(Icons.book,
+                                              color: Colors.blue[400],
+                                              size: 16),
                                           const SizedBox(width: 8),
-                                          const Text('Theory', style: TextStyle(color: Colors.blue, fontSize: 14, fontWeight: FontWeight.w500)),
+                                          const Text('Theory',
+                                              style: TextStyle(
+                                                  color: Colors.blue,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w500)),
                                         ],
                                       ),
                                       const SizedBox(height: 8),
                                       Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
                                           Flexible(
                                             child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
-                                                Text('Overall: ${theoryData.percentage.toStringAsFixed(1)}%', style: TextStyle(color: _getPercentageColor(theoryData.percentage), fontSize: 16, fontWeight: FontWeight.w600)),
-                                                Text('${theoryData.totalHoursAttended.toStringAsFixed(1)}/${theoryData.totalScheduledHours.toStringAsFixed(1)}h', style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+                                                Text(
+                                                    'Overall: ${theoryData.percentage.toStringAsFixed(1)}%',
+                                                    style: TextStyle(
+                                                        color:
+                                                            _getPercentageColor(
+                                                                theoryData
+                                                                    .percentage),
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.w600)),
+                                                Text(
+                                                    '${theoryData.totalHoursAttended.toStringAsFixed(1)}/${theoryData.totalScheduledHours.toStringAsFixed(1)}h',
+                                                    style: TextStyle(
+                                                        color: Colors.grey[400],
+                                                        fontSize: 12)),
                                                 if (theoryData.hoursCanMiss > 0)
-                                                  Text('Can miss: ${theoryData.hoursCanMiss.toStringAsFixed(1)}h more', style: TextStyle(color: Colors.green[300], fontSize: 11, fontWeight: FontWeight.w500))
+                                                  Text(
+                                                      'Can miss: ${theoryData.hoursCanMiss.toStringAsFixed(1)}h more',
+                                                      style: TextStyle(
+                                                          color:
+                                                              Colors.green[300],
+                                                          fontSize: 11,
+                                                          fontWeight:
+                                                              FontWeight.w500))
                                                 else
-                                                  Text('Cannot miss any more classes', style: TextStyle(color: Colors.red[300], fontSize: 11, fontWeight: FontWeight.w500)),
+                                                  Text(
+                                                      'Cannot miss any more classes',
+                                                      style: TextStyle(
+                                                          color:
+                                                              Colors.red[300],
+                                                          fontSize: 11,
+                                                          fontWeight:
+                                                              FontWeight.w500)),
                                               ],
                                             ),
                                           ),
-                                          if (theoryData.hoursHeldExclMassBunk != theoryData.totalHoursHeld)
+                                          if (theoryData
+                                                  .hoursHeldExclMassBunk !=
+                                              theoryData.totalHoursHeld)
                                             Flexible(
                                               child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.end,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.end,
                                                 children: [
-                                                  Text('Excl MB: ${theoryData.percentageExclMassBunk.toStringAsFixed(1)}%', style: TextStyle(color: Colors.orange[300], fontSize: 14, fontWeight: FontWeight.w500)),
-                                                  Text('${theoryData.hoursAttendedExclMassBunk.toStringAsFixed(1)}/${theoryData.hoursHeldExclMassBunk.toStringAsFixed(1)}h', style: TextStyle(color: Colors.grey[500], fontSize: 11)),
+                                                  Text(
+                                                      'Excl MB: ${theoryData.percentageExclMassBunk.toStringAsFixed(1)}%',
+                                                      style: TextStyle(
+                                                          color: Colors
+                                                              .orange[300],
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                              FontWeight.w500)),
+                                                  Text(
+                                                      '${theoryData.hoursAttendedExclMassBunk.toStringAsFixed(1)}/${theoryData.hoursHeldExclMassBunk.toStringAsFixed(1)}h',
+                                                      style: TextStyle(
+                                                          color:
+                                                              Colors.grey[500],
+                                                          fontSize: 11)),
                                                 ],
                                               ),
                                             ),
                                         ],
                                       ),
                                       const SizedBox(height: 8),
-                                      LinearProgressIndicator(value: theoryData.percentage / 100, backgroundColor: Colors.grey[700], valueColor: AlwaysStoppedAnimation(_getPercentageColor(theoryData.percentage))),
+                                      LinearProgressIndicator(
+                                          value: theoryData.percentage / 100,
+                                          backgroundColor: Colors.grey[700],
+                                          valueColor: AlwaysStoppedAnimation(
+                                              _getPercentageColor(
+                                                  theoryData.percentage))),
                                       const SizedBox(height: 16),
                                     ],
-                                    
-                                    // Practical Stats
-                                    if (subject.hasPractical && practicalData.totalScheduledHours > 0) ...[
+                                    if (subject.hasPractical &&
+                                        practicalData.totalScheduledHours >
+                                            0) ...[
                                       Row(
                                         children: [
-                                          Icon(Icons.science, color: Colors.green[400], size: 16),
+                                          Icon(Icons.science,
+                                              color: Colors.green[400],
+                                              size: 16),
                                           const SizedBox(width: 8),
-                                          const Text('Practical', style: TextStyle(color: Colors.green, fontSize: 14, fontWeight: FontWeight.w500)),
+                                          const Text('Practical',
+                                              style: TextStyle(
+                                                  color: Colors.green,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w500)),
                                         ],
                                       ),
                                       const SizedBox(height: 8),
                                       Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
                                           Flexible(
                                             child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
-                                                Text('Overall: ${practicalData.percentage.toStringAsFixed(1)}%', style: TextStyle(color: _getPercentageColor(practicalData.percentage), fontSize: 16, fontWeight: FontWeight.w600)),
-                                                Text('${practicalData.totalHoursAttended.toStringAsFixed(1)}/${practicalData.totalScheduledHours.toStringAsFixed(1)}h', style: TextStyle(color: Colors.grey[400], fontSize: 12)),
-                                                if (practicalData.hoursCanMiss > 0)
-                                                  Text('Can miss: ${practicalData.hoursCanMiss.toStringAsFixed(1)}h more', style: TextStyle(color: Colors.green[300], fontSize: 11, fontWeight: FontWeight.w500))
+                                                Text(
+                                                    'Overall: ${practicalData.percentage.toStringAsFixed(1)}%',
+                                                    style: TextStyle(
+                                                        color:
+                                                            _getPercentageColor(
+                                                                practicalData
+                                                                    .percentage),
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.w600)),
+                                                Text(
+                                                    '${practicalData.totalHoursAttended.toStringAsFixed(1)}/${practicalData.totalScheduledHours.toStringAsFixed(1)}h',
+                                                    style: TextStyle(
+                                                        color: Colors.grey[400],
+                                                        fontSize: 12)),
+                                                if (practicalData.hoursCanMiss >
+                                                    0)
+                                                  Text(
+                                                      'Can miss: ${practicalData.hoursCanMiss.toStringAsFixed(1)}h more',
+                                                      style: TextStyle(
+                                                          color:
+                                                              Colors.green[300],
+                                                          fontSize: 11,
+                                                          fontWeight:
+                                                              FontWeight.w500))
                                                 else
-                                                  Text('Cannot miss any more classes', style: TextStyle(color: Colors.red[300], fontSize: 11, fontWeight: FontWeight.w500)),
+                                                  Text(
+                                                      'Cannot miss any more classes',
+                                                      style: TextStyle(
+                                                          color:
+                                                              Colors.red[300],
+                                                          fontSize: 11,
+                                                          fontWeight:
+                                                              FontWeight.w500)),
                                               ],
                                             ),
                                           ),
-                                          if (practicalData.hoursHeldExclMassBunk != practicalData.totalHoursHeld)
+                                          if (practicalData
+                                                  .hoursHeldExclMassBunk !=
+                                              practicalData.totalHoursHeld)
                                             Flexible(
                                               child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.end,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.end,
                                                 children: [
-                                                  Text('Excl MB: ${practicalData.percentageExclMassBunk.toStringAsFixed(1)}%', style: TextStyle(color: Colors.orange[300], fontSize: 14, fontWeight: FontWeight.w500)),
-                                                  Text('${practicalData.hoursAttendedExclMassBunk.toStringAsFixed(1)}/${practicalData.hoursHeldExclMassBunk.toStringAsFixed(1)}h', style: TextStyle(color: Colors.grey[500], fontSize: 11)),
+                                                  Text(
+                                                      'Excl MB: ${practicalData.percentageExclMassBunk.toStringAsFixed(1)}%',
+                                                      style: TextStyle(
+                                                          color: Colors
+                                                              .orange[300],
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                              FontWeight.w500)),
+                                                  Text(
+                                                      '${practicalData.hoursAttendedExclMassBunk.toStringAsFixed(1)}/${practicalData.hoursHeldExclMassBunk.toStringAsFixed(1)}h',
+                                                      style: TextStyle(
+                                                          color:
+                                                              Colors.grey[500],
+                                                          fontSize: 11)),
                                                 ],
                                               ),
                                             ),
                                         ],
                                       ),
                                       const SizedBox(height: 8),
-                                      LinearProgressIndicator(value: practicalData.percentage / 100, backgroundColor: Colors.grey[700], valueColor: AlwaysStoppedAnimation(_getPercentageColor(practicalData.percentage))),
+                                      LinearProgressIndicator(
+                                          value: practicalData.percentage / 100,
+                                          backgroundColor: Colors.grey[700],
+                                          valueColor: AlwaysStoppedAnimation(
+                                              _getPercentageColor(
+                                                  practicalData.percentage))),
                                     ],
-
-                                    // No data message
-                                    if (theoryData.totalScheduledHours == 0 && (!subject.hasPractical || practicalData.totalScheduledHours == 0))
+                                    if (theoryData.totalScheduledHours == 0 &&
+                                        (!subject.hasPractical ||
+                                            practicalData.totalScheduledHours ==
+                                                0))
                                       Text(
                                         'No attendance data yet',
                                         style: TextStyle(

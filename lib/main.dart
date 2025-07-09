@@ -1,5 +1,3 @@
-// In lib/main.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -12,15 +10,14 @@ import 'package:flutter/services.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
 
-  // Initialize timezone data
   tz.initializeTimeZones();
   tz.setLocalLocation(tz.getLocation('Asia/Kolkata')); // Set your timezone
-  
+
   await NotificationService().init();
 
   final timetableModel = TimetableModel();

@@ -1,4 +1,3 @@
-// In subject_setup_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -50,9 +49,8 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
         _subjectCount = count;
         _showSubjectInputs = true;
         if (!widget.isEditing) {
-          _subjects.clear(); // Clear only if not editing
+          _subjects.clear();
         }
-        // If editing and subject count changes, adjust _subjects list if needed
         if (widget.isEditing && _subjects.length > count) {
           _subjects = _subjects.sublist(0, count);
         }
@@ -96,12 +94,11 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
               fontWeight: FontWeight.w500,
             ),
           ),
-          content: SingleChildScrollView( // Wrap content in SingleChildScrollView
+          content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Subject Name
                 TextField(
                   controller: nameController,
                   style: const TextStyle(color: Colors.white),
@@ -119,8 +116,6 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                // Credit Type Selection
                 const Text(
                   'Credit Type:',
                   style: TextStyle(
@@ -138,17 +133,21 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                           setDialogState(() {
                             creditType = CreditType.fourCredit;
                             if (subjectType == SubjectType.elective) {
-                              subjectType = SubjectType.theory; // Reset if it was elective
+                              subjectType = SubjectType.theory;
                             }
                           });
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
-                            color: creditType == CreditType.fourCredit ? Colors.blue[600] : Colors.grey[800],
+                            color: creditType == CreditType.fourCredit
+                                ? Colors.blue[600]
+                                : Colors.grey[800],
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: creditType == CreditType.fourCredit ? Colors.blue[400]! : Colors.grey[600]!,
+                              color: creditType == CreditType.fourCredit
+                                  ? Colors.blue[400]!
+                                  : Colors.grey[600]!,
                               width: 1,
                             ),
                           ),
@@ -169,19 +168,20 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                         onTap: () {
                           setDialogState(() {
                             creditType = CreditType.twoCredit;
-                            hasPractical = false; // 2-credit cannot have practical
-                            // if (subjectType == SubjectType.theory) {
-                            //   subjectType = SubjectType.elective; // Default to elective for 2-credit
-                            // }
+                            hasPractical = false;
                           });
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
-                            color: creditType == CreditType.twoCredit ? Colors.green[600] : Colors.grey[800],
+                            color: creditType == CreditType.twoCredit
+                                ? Colors.green[600]
+                                : Colors.grey[800],
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: creditType == CreditType.twoCredit ? Colors.green[400]! : Colors.grey[600]!,
+                              color: creditType == CreditType.twoCredit
+                                  ? Colors.green[400]!
+                                  : Colors.grey[600]!,
                               width: 1,
                             ),
                           ),
@@ -198,10 +198,7 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 20),
-
-                // Subject Type for 4-Credit
                 if (creditType == CreditType.fourCredit) ...[
                   const Text(
                     'Subject Type:',
@@ -249,8 +246,6 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                     ),
                   ),
                 ],
-
-                // Subject Type for 2-Credit
                 if (creditType == CreditType.twoCredit) ...[
                   const Text(
                     'Subject Type:',
@@ -274,10 +269,14 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             decoration: BoxDecoration(
-                              color: subjectType == SubjectType.elective ? Colors.orange[600] : Colors.grey[800],
+                              color: subjectType == SubjectType.elective
+                                  ? Colors.orange[600]
+                                  : Colors.grey[800],
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: subjectType == SubjectType.elective ? Colors.orange[400]! : Colors.grey[600]!,
+                                color: subjectType == SubjectType.elective
+                                    ? Colors.orange[400]!
+                                    : Colors.grey[600]!,
                                 width: 1,
                               ),
                             ),
@@ -298,16 +297,20 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                           onTap: () {
                             setDialogState(() {
                               subjectType = SubjectType.practical;
-                              hasPractical = true; // 2-credit practical inherently has practical
+                              hasPractical = true;
                             });
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             decoration: BoxDecoration(
-                              color: subjectType == SubjectType.practical ? Colors.purple[600] : Colors.grey[800],
+                              color: subjectType == SubjectType.practical
+                                  ? Colors.purple[600]
+                                  : Colors.grey[800],
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: subjectType == SubjectType.practical ? Colors.purple[400]! : Colors.grey[600]!,
+                                color: subjectType == SubjectType.practical
+                                    ? Colors.purple[400]!
+                                    : Colors.grey[600]!,
                                 width: 1,
                               ),
                             ),
@@ -325,10 +328,7 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                     ],
                   ),
                 ],
-
                 const SizedBox(height: 16),
-
-                // Hours Information
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -362,9 +362,8 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        // Use a temporary Subject instance to get the description
                         Subject(
-                          name: '', // Name doesn't matter for creditDescription
+                          name: '',
                           creditType: creditType,
                           subjectType: subjectType,
                           hasPractical: hasPractical,
@@ -393,7 +392,8 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                 if (nameController.text.trim().isNotEmpty) {
                   setState(() {
                     final subject = index != null
-                        ? _subjects[index].copyWith(name: nameController.text.trim())
+                        ? _subjects[index]
+                            .copyWith(name: nameController.text.trim())
                         : Subject(
                             name: nameController.text.trim(),
                             hasPractical: hasPractical,
@@ -514,7 +514,7 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
   void _proceedToTimetable() {
     if (_subjects.length == _subjectCount) {
       final model = context.read<TimetableModel>();
-      model.updateSubjects(_subjects); // Save and notify listeners
+      model.updateSubjects(_subjects);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -551,13 +551,14 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
-          child: SingleChildScrollView( // Added SingleChildScrollView here
+          child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header
                 Text(
-                  widget.isEditing ? 'Edit Your Subjects' : 'Configure Your Subjects',
+                  widget.isEditing
+                      ? 'Edit Your Subjects'
+                      : 'Configure Your Subjects',
                   style: const TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w400,
@@ -577,8 +578,6 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                   ),
                 ),
                 const SizedBox(height: 40),
-
-                // Subject count input
                 if (!_showSubjectInputs) ...[
                   const Text(
                     'How many subjects do you have?',
@@ -648,8 +647,6 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                     ],
                   ),
                 ],
-
-                // Subject list
                 if (_showSubjectInputs) ...[
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -678,16 +675,11 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  // Using Flexible here to constrain the ListView.builder inside a Column
-                  // to prevent overflow if the list becomes very long and the screen is small.
-                  // However, for typical subject counts (1-15), Expanded might be better
-                  // if the overall screen allows for scroll. Given this is inside a SingleChildScrollView
-                  // wrapping the whole body, Expanded is generally fine.
-                  LimitedBox( // Use LimitedBox to constrain height of ListView within a SingleChildScrollView
-                    maxHeight: MediaQuery.of(context).size.height * 0.5, // Adjust as needed
+                  LimitedBox(
+                    maxHeight: MediaQuery.of(context).size.height * 0.5,
                     child: ListView.builder(
-                      shrinkWrap: true, // Important for ListView inside SingleChildScrollView
-                      physics: const ClampingScrollPhysics(), // Important for ListView inside SingleChildScrollView
+                      shrinkWrap: true,
+                      physics: const ClampingScrollPhysics(),
                       itemCount: _subjects.length,
                       itemBuilder: (context, index) {
                         final subject = _subjects[index];
@@ -707,7 +699,8 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         subject.name,
@@ -771,7 +764,8 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                                   ),
                                 ),
                                 IconButton(
-                                  onPressed: () => _showDeleteConfirmation(index),
+                                  onPressed: () =>
+                                      _showDeleteConfirmation(index),
                                   icon: Icon(
                                     Icons.delete,
                                     color: Colors.red[400],
@@ -789,7 +783,9 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _subjects.length == _subjectCount ? _proceedToTimetable : null,
+                      onPressed: _subjects.length == _subjectCount
+                          ? _proceedToTimetable
+                          : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.black,
@@ -799,7 +795,9 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                         ),
                       ),
                       child: Text(
-                        widget.isEditing ? 'Update Subjects' : 'Create Timetable',
+                        widget.isEditing
+                            ? 'Update Subjects'
+                            : 'Create Timetable',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,

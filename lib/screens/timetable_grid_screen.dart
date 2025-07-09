@@ -1,4 +1,3 @@
-// In timetable_grid_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'attendance_screen.dart';
@@ -260,8 +259,10 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.upload, color: Colors.blue),
-              title: const Text('Export Timetable', style: TextStyle(color: Colors.white)),
-              subtitle: Text('Save as JSON file', style: TextStyle(color: Colors.grey[400])),
+              title: const Text('Export Timetable',
+                  style: TextStyle(color: Colors.white)),
+              subtitle: Text('Save as JSON file',
+                  style: TextStyle(color: Colors.grey[400])),
               onTap: () {
                 Navigator.pop(context);
                 _exportTimetable();
@@ -269,8 +270,10 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.download, color: Colors.green),
-              title: const Text('Import Timetable', style: TextStyle(color: Colors.white)),
-              subtitle: Text('Load from JSON file', style: TextStyle(color: Colors.grey[400])),
+              title: const Text('Import Timetable',
+                  style: TextStyle(color: Colors.white)),
+              subtitle: Text('Load from JSON file',
+                  style: TextStyle(color: Colors.grey[400])),
               onTap: () {
                 Navigator.pop(context);
                 _importTimetable();
@@ -292,7 +295,6 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
   }
 
   void _exportTimetable() {
-    // Implement actual export logic here
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Timetable exported successfully (placeholder)'),
@@ -302,7 +304,6 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
   }
 
   void _importTimetable() {
-    // Implement actual import logic here
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Timetable imported successfully (placeholder)'),
@@ -366,7 +367,6 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
           body: SafeArea(
             child: Column(
               children: [
-                // Day Selection Tabs
                 Container(
                   margin: const EdgeInsets.all(16),
                   padding: const EdgeInsets.all(4),
@@ -387,14 +387,18 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             decoration: BoxDecoration(
-                              color: isSelected ? Colors.white : Colors.transparent,
+                              color: isSelected
+                                  ? Colors.white
+                                  : Colors.transparent,
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
                               day.substring(0, 3),
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                color: isSelected ? Colors.black : Colors.grey[400],
+                                color: isSelected
+                                    ? Colors.black
+                                    : Colors.grey[400],
                                 fontWeight: FontWeight.w500,
                                 fontSize: 13,
                               ),
@@ -405,8 +409,6 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                     }).toList(),
                   ),
                 ),
-
-                // Instructions
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16),
                   padding: const EdgeInsets.all(12),
@@ -440,50 +442,55 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-
-                // Time Slots for Selected Day
                 Expanded(
                   child: ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: model.timeSlots.length,
                     itemBuilder: (context, index) {
                       final timeSlot = model.timeSlots[index];
-                      final classInfo = model.timetable[_selectedDay]![timeSlot];
-                      final isBlocked = model.isSlotBlocked(_selectedDay, timeSlot);
+                      final classInfo =
+                          model.timetable[_selectedDay]![timeSlot];
+                      final isBlocked =
+                          model.isSlotBlocked(_selectedDay, timeSlot);
                       final isBlockedSlot = classInfo?.isBlockedSlot == true;
 
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: GestureDetector(
-                          onTap: isBlockedSlot ? null : () => _showClassDialog(_selectedDay, timeSlot),
+                          onTap: isBlockedSlot
+                              ? null
+                              : () => _showClassDialog(_selectedDay, timeSlot),
                           child: Container(
-                            // Removed fixed height: 80, to allow content to dictate height
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              gradient: _getCardGradient(classInfo, isBlocked, isBlockedSlot),
+                              gradient: _getCardGradient(
+                                  classInfo, isBlocked, isBlockedSlot),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: _getBorderColor(classInfo, isBlocked, isBlockedSlot),
+                                color: _getBorderColor(
+                                    classInfo, isBlocked, isBlockedSlot),
                                 width: 1.5,
                               ),
                               boxShadow: classInfo != null && !isBlockedSlot
                                   ? [
-                                BoxShadow(
-                                  color: (classInfo.isTheory ? Colors.blue : Colors.green)
-                                      .withOpacity(0.2),
-                                  blurRadius: 8,
-                                  spreadRadius: 1,
-                                ),
-                              ]
+                                      BoxShadow(
+                                        color: (classInfo.isTheory
+                                                ? Colors.blue
+                                                : Colors.green)
+                                            .withOpacity(0.2),
+                                        blurRadius: 8,
+                                        spreadRadius: 1,
+                                      ),
+                                    ]
                                   : null,
                             ),
                             child: Row(
                               children: [
-                                // Time Slot
                                 SizedBox(
                                   width: 70,
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
@@ -509,8 +516,6 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                                   ),
                                 ),
                                 const SizedBox(width: 16),
-
-                                // Vertical Divider
                                 Container(
                                   width: 2,
                                   height: 40,
@@ -522,139 +527,184 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                                   ),
                                 ),
                                 const SizedBox(width: 16),
-
-                                // Class Info or Add Button
                                 Expanded(
                                   child: SizedBox(
-                                    // Removed fixed height: 48, from here as well, if needed
-                                    // This SizedBox is fine if the content within it will expand it.
                                     child: isBlockedSlot
                                         ? Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.block,
-                                          color: Colors.grey[600],
-                                          size: 18,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            'Blocked by ${classInfo!.subject.name}',
-                                            style: TextStyle(
-                                              color: Colors.grey[600],
-                                              fontSize: 14,
-                                              fontStyle: FontStyle.italic,
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                        : classInfo != null
-                                        ? Row(
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
                                             children: [
-                                              Text(
-                                                classInfo.subject.name,
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
+                                              Icon(
+                                                Icons.block,
+                                                color: Colors.grey[600],
+                                                size: 18,
                                               ),
-                                              const SizedBox(height: 4),
-                                              Row(
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: Text(
+                                                  'Blocked by ${classInfo!.subject.name}',
+                                                  style: TextStyle(
+                                                    color: Colors.grey[600],
+                                                    fontSize: 14,
+                                                    fontStyle: FontStyle.italic,
+                                                  ),
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          )
+                                        : classInfo != null
+                                            ? Row(
                                                 children: [
-                                                  Container(
-                                                    padding: const EdgeInsets.symmetric(
-                                                      horizontal: 6,
-                                                      vertical: 2,
-                                                    ),
-                                                    decoration: BoxDecoration(
-                                                      color: classInfo.isTheory
-                                                          ? Colors.blue[600]
-                                                          : Colors.green[600],
-                                                      borderRadius: BorderRadius.circular(10),
-                                                    ),
-                                                    child: Text(
-                                                      classInfo.isTheory ? 'Theory' : 'Practical',
-                                                      style: const TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 9,
-                                                        fontWeight: FontWeight.w600,
-                                                      ),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        Text(
+                                                          classInfo
+                                                              .subject.name,
+                                                          style:
+                                                              const TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 16,
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                          ),
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
+                                                        const SizedBox(
+                                                            height: 4),
+                                                        Row(
+                                                          children: [
+                                                            Container(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .symmetric(
+                                                                horizontal: 6,
+                                                                vertical: 2,
+                                                              ),
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                color: classInfo
+                                                                        .isTheory
+                                                                    ? Colors.blue[
+                                                                        600]
+                                                                    : Colors.green[
+                                                                        600],
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            10),
+                                                              ),
+                                                              child: Text(
+                                                                classInfo
+                                                                        .isTheory
+                                                                    ? 'Theory'
+                                                                    : 'Practical',
+                                                                style:
+                                                                    const TextStyle(
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontSize: 9,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                                width: 6),
+                                                            Container(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .symmetric(
+                                                                horizontal: 6,
+                                                                vertical: 2,
+                                                              ),
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                color: Colors
+                                                                    .grey[700],
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            10),
+                                                              ),
+                                                              child: Text(
+                                                                '${classInfo.duration}h',
+                                                                style:
+                                                                    const TextStyle(
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontSize: 9,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w500,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ],
                                                     ),
                                                   ),
-                                                  const SizedBox(width: 6),
                                                   Container(
-                                                    padding: const EdgeInsets.symmetric(
-                                                      horizontal: 6,
-                                                      vertical: 2,
+                                                    padding:
+                                                        const EdgeInsets.all(6),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white
+                                                          .withOpacity(0.1),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              6),
                                                     ),
+                                                    child: Icon(
+                                                      Icons.edit_outlined,
+                                                      color: Colors.white
+                                                          .withOpacity(0.8),
+                                                      size: 14,
+                                                    ),
+                                                  ),
+                                                ],
+                                              )
+                                            : Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Container(
+                                                    padding:
+                                                        const EdgeInsets.all(6),
                                                     decoration: BoxDecoration(
                                                       color: Colors.grey[700],
-                                                      borderRadius: BorderRadius.circular(10),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              6),
                                                     ),
-                                                    child: Text(
-                                                      '${classInfo.duration}h',
-                                                      style: const TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 9,
-                                                        fontWeight: FontWeight.w500,
-                                                      ),
+                                                    child: Icon(
+                                                      Icons.add,
+                                                      color: Colors.grey[400],
+                                                      size: 16,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Text(
+                                                    'Add Class',
+                                                    style: TextStyle(
+                                                      color: Colors.grey[400],
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.w500,
                                                     ),
                                                   ),
                                                 ],
                                               ),
-                                            ],
-                                          ),
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.all(6),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: Icon(
-                                            Icons.edit_outlined,
-                                            color: Colors.white.withOpacity(0.8),
-                                            size: 14,
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                        : Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.all(6),
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey[700],
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: Icon(
-                                            Icons.add,
-                                            color: Colors.grey[400],
-                                            size: 16,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          'Add Class',
-                                          style: TextStyle(
-                                            color: Colors.grey[400],
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
                                   ),
                                 ),
                               ],
@@ -673,7 +723,8 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
     );
   }
 
-  LinearGradient _getCardGradient(ClassInfo? classInfo, bool isBlocked, bool isBlockedSlot) {
+  LinearGradient _getCardGradient(
+      ClassInfo? classInfo, bool isBlocked, bool isBlockedSlot) {
     if (isBlockedSlot) {
       return LinearGradient(
         colors: [
@@ -715,7 +766,8 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
     }
   }
 
-  Color _getBorderColor(ClassInfo? classInfo, bool isBlocked, bool isBlockedSlot) {
+  Color _getBorderColor(
+      ClassInfo? classInfo, bool isBlocked, bool isBlockedSlot) {
     if (isBlockedSlot) {
       return Colors.grey[700]!;
     } else if (classInfo != null) {
@@ -730,7 +782,7 @@ class ClassSelectionDialog extends StatefulWidget {
   final List<Subject> subjects;
   final ClassInfo? currentClass;
   final String timeSlot;
-  final List<String> timeSlots; // Add timeSlots to constructor
+  final List<String> timeSlots;
   final Function(ClassInfo) onClassSelected;
   final VoidCallback onClassRemoved;
 
@@ -739,7 +791,7 @@ class ClassSelectionDialog extends StatefulWidget {
     required this.subjects,
     required this.currentClass,
     required this.timeSlot,
-    required this.timeSlots, // Initialize timeSlots
+    required this.timeSlots,
     required this.onClassSelected,
     required this.onClassRemoved,
   }) : super(key: key);
@@ -823,7 +875,6 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Time Slot Info
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -850,8 +901,6 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
               ),
             ),
             const SizedBox(height: 20),
-
-            // Subject Selection
             const Text(
               'Subject:',
               style: TextStyle(
@@ -902,8 +951,8 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
                   onChanged: (value) {
                     setState(() {
                       _selectedSubject = value;
-                      // Reset to theory if practical is not available for the new subject
-                      if (value?.hasPractical != true && _selectedType == ClassType.practical) {
+                      if (value?.hasPractical != true &&
+                          _selectedType == ClassType.practical) {
                         _selectedType = ClassType.theory;
                       }
                     });
@@ -912,8 +961,6 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
               ),
             ),
             const SizedBox(height: 20),
-
-            // Class Type Selection
             const Text(
               'Class Type:',
               style: TextStyle(
@@ -949,8 +996,6 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
               ),
             ),
             const SizedBox(height: 20),
-
-            // Duration Selection
             const Text(
               'Duration:',
               style: TextStyle(
@@ -972,10 +1017,14 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        color: _selectedDuration == 1 ? Colors.white : Colors.grey[800],
+                        color: _selectedDuration == 1
+                            ? Colors.white
+                            : Colors.grey[800],
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: _selectedDuration == 1 ? Colors.white : Colors.grey[600]!,
+                          color: _selectedDuration == 1
+                              ? Colors.white
+                              : Colors.grey[600]!,
                           width: 1.5,
                         ),
                       ),
@@ -983,7 +1032,9 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
                         '1 Hour',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: _selectedDuration == 1 ? Colors.black : Colors.white,
+                          color: _selectedDuration == 1
+                              ? Colors.black
+                              : Colors.white,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -993,22 +1044,28 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: GestureDetector(
-                    onTap: _canSelect2Hours() ? () {
-                      setState(() {
-                        _selectedDuration = 2;
-                      });
-                    } : null,
+                    onTap: _canSelect2Hours()
+                        ? () {
+                            setState(() {
+                              _selectedDuration = 2;
+                            });
+                          }
+                        : null,
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
                         color: _canSelect2Hours()
-                            ? (_selectedDuration == 2 ? Colors.white : Colors.grey[800])
-                            : Colors.grey[850], // Greyed out if 2-hour not possible
+                            ? (_selectedDuration == 2
+                                ? Colors.white
+                                : Colors.grey[800])
+                            : Colors.grey[850],
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: _canSelect2Hours()
-                              ? (_selectedDuration == 2 ? Colors.white : Colors.grey[600]!)
-                              : Colors.grey[700]!, // Border for greyed out
+                              ? (_selectedDuration == 2
+                                  ? Colors.white
+                                  : Colors.grey[600]!)
+                              : Colors.grey[700]!,
                           width: 1.5,
                         ),
                       ),
@@ -1017,8 +1074,10 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: _canSelect2Hours()
-                              ? (_selectedDuration == 2 ? Colors.black : Colors.white)
-                              : Colors.grey[600], // Text color for greyed out
+                              ? (_selectedDuration == 2
+                                  ? Colors.black
+                                  : Colors.white)
+                              : Colors.grey[600],
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -1070,13 +1129,13 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
         ElevatedButton(
           onPressed: _selectedSubject != null
               ? () {
-            widget.onClassSelected(ClassInfo(
-              subject: _selectedSubject!,
-              type: _selectedType,
-              duration: _selectedDuration,
-            ));
-            Navigator.of(context).pop();
-          }
+                  widget.onClassSelected(ClassInfo(
+                    subject: _selectedSubject!,
+                    type: _selectedType,
+                    duration: _selectedDuration,
+                  ));
+                  Navigator.of(context).pop();
+                }
               : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.white,
