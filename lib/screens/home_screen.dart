@@ -1,6 +1,10 @@
+// In lib/screens/home_screen.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'subject_setup_screen.dart';
-import 'timetable_management_screen.dart';
+import 'attendance_screen.dart';
+import '../models/timetable_model.dart';
+import '../services/notification_service.dart'; // Import the service
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -10,24 +14,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  bool _hasExistingTimetable = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkExistingData();
-  }
-
-  void _checkExistingData() {
-    // Check if user has existing subjects/timetable
-    // This would typically check local storage/database
-    setState(() {
-      _hasExistingTimetable = false; // Set based on actual data
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    final model = context.watch<TimetableModel>();
+    final hasExistingTimetable = model.subjects.isNotEmpty;
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -42,18 +33,18 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.black,
         elevation: 0,
         actions: [
-          if (_hasExistingTimetable)
+          if (hasExistingTimetable)
             IconButton(
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const TimetableManagementScreen(),
+                    builder: (context) => const AttendanceScreen(),
                   ),
                 );
               },
-              icon: const Icon(Icons.schedule, color: Colors.white),
-              tooltip: 'Manage Timetable',
+              icon: const Icon(Icons.fact_check_outlined, color: Colors.white),
+              tooltip: 'Go to Attendance',
             ),
         ],
       ),
@@ -72,9 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   letterSpacing: 1,
                 ),
               ),
-              
               const SizedBox(height: 8),
-              
               Text(
                 'Smart Attendance Tracker for DTU',
                 style: TextStyle(
@@ -83,9 +72,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   fontWeight: FontWeight.w300,
                 ),
               ),
-              
               const SizedBox(height: 40),
-              
+
               // Setup/Edit Timetable Button
               SizedBox(
                 width: double.infinity,
@@ -94,16 +82,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const SubjectSetupScreen(),
+                        builder: (context) => SubjectSetupScreen(
+                          existingSubjects: hasExistingTimetable ? model.subjects : null,
+                          isEditing: hasExistingTimetable,
+                        ),
                       ),
                     );
                   },
                   icon: Icon(
-                    _hasExistingTimetable ? Icons.edit : Icons.add,
+                    hasExistingTimetable ? Icons.edit : Icons.add,
                     size: 20,
                   ),
                   label: Text(
-                    _hasExistingTimetable ? 'Edit Timetable' : 'Setup Timetable',
+                    hasExistingTimetable ? 'Edit Timetable' : 'Setup Timetable',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
@@ -120,121 +111,87 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-              
-              if (_hasExistingTimetable) ...[
-                const SizedBox(height: 16),
-                
-                // Quick Actions
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const TimetableManagementScreen(),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.view_week, size: 18),
-                        label: const Text('View Timetable'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          side: const BorderSide(color: Colors.white),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          // Navigate to attendance screen
-                        },
-                        icon: const Icon(Icons.fact_check, size: 18),
-                        label: const Text('Attendance'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          side: const BorderSide(color: Colors.white),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+
+              const SizedBox(height: 24),
+
+              // Notification Scheduling Section
+              if (hasExistingTimetable) ...[
+                const Text(
+                  'Reminders',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
-              ],
-              
-              const Spacer(),
-              
-              // Quick Stats (if timetable exists)
-              if (_hasExistingTimetable)
+                const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.grey[900],
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.grey[700]!,
-                      width: 1,
-                    ),
                   ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Quick Stats',
-                        style: TextStyle(
-                          color: Colors.grey[300],
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        'Enable daily reminders to mark your attendance at 6 PM (Mon-Fri).',
+                        style: TextStyle(color: Colors.grey[300], fontSize: 14),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _buildStatItem('Subjects', '6', Colors.blue),
-                          _buildStatItem('This Week', '85%', Colors.green),
-                          _buildStatItem('Overall', '78%', Colors.orange),
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                NotificationService().scheduleWeeklyAttendanceReminders();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Attendance reminders have been scheduled!'),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.notifications_active, size: 18),
+                              label: const Text('Enable'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.green,
+                                side: const BorderSide(color: Colors.green),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                NotificationService().cancelAllNotifications();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('All reminders have been cancelled.'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.notifications_off, size: 18),
+                              label: const Text('Disable'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.red,
+                                side: const BorderSide(color: Colors.red),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ],
                   ),
                 ),
+              ],
+              const Spacer(),
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildStatItem(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-            color: color,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.grey[400],
-            fontSize: 12,
-          ),
-        ),
-      ],
     );
   }
 }

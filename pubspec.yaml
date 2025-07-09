@@ -14,6 +14,8 @@ dependencies:
   shared_preferences: ^2.5.3
   provider: ^6.1.5
   uuid: ^4.5.1
+  flutter_local_notifications: ^19.3.0
+  timezone: ^0.10.1
 
 dev_dependencies:
   flutter_test:
