@@ -1,4 +1,5 @@
 // In lib/screens/home_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'subject_setup_screen.dart';
@@ -218,6 +219,21 @@ class _HomeScreenState extends State<HomeScreen> {
                                 );
                               },
                               child: const Text('Check Scheduled'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () {
+                                NotificationService().testImmediateNotification();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Immediate test scheduled!'),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                              },
+                              child: const Text('Test 10s'),
                             ),
                           ),
                         ],
