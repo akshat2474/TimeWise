@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'subject_setup_screen.dart';
 import 'attendance_screen.dart';
 import '../models/timetable_model.dart';
-import '../services/notification_service.dart'; // Import the service
+import '../services/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -16,6 +16,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
+    // CORRECTED: This now correctly watches the TimetableModel for changes.
     final model = context.watch<TimetableModel>();
     final hasExistingTimetable = model.subjects.isNotEmpty;
 
@@ -73,8 +74,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 40),
-
-              // Setup/Edit Timetable Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -111,10 +110,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 24),
-
-              // Notification Scheduling Section
+              // This entire section will now appear correctly once a timetable is set up.
               if (hasExistingTimetable) ...[
                 const Text(
                   'Reminders',
@@ -132,6 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Enable daily reminders to mark your attendance at 6 PM (Mon-Fri).',
@@ -146,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 NotificationService().scheduleWeeklyAttendanceReminders();
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Attendance reminders have been scheduled!'),
+                                    content: Text('Attendance reminders scheduled!'),
                                     backgroundColor: Colors.green,
                                   ),
                                 );
@@ -167,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 NotificationService().cancelAllNotifications();
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('All reminders have been cancelled.'),
+                                    content: Text('All reminders cancelled.'),
                                     backgroundColor: Colors.red,
                                   ),
                                 );
@@ -179,6 +177,47 @@ class _HomeScreenState extends State<HomeScreen> {
                                 side: const BorderSide(color: Colors.red),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      const Divider(),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Developer Tools',
+                        style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () {
+                                NotificationService().showTestNotification();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Test notification sent!'),
+                                    backgroundColor: Colors.blue,
+                                  ),
+                                );
+                              },
+                              child: const Text('Send Test'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () {
+                                NotificationService().checkPendingNotifications();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Checked schedule. See debug console.'),
+                                    backgroundColor: Colors.purple,
+                                  ),
+                                );
+                              },
+                              child: const Text('Check Scheduled'),
                             ),
                           ),
                         ],

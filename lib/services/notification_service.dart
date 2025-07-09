@@ -1,7 +1,6 @@
 // In lib/services/notification_service.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 class NotificationService {
@@ -31,14 +30,33 @@ class NotificationService {
       iOS: initializationSettingsDarwin,
       macOS: initializationSettingsDarwin,
     );
-
-    // Initialize time zones
-    tz.initializeTimeZones();
+    
+    // REMOVED: Timezone initialization is now handled in main.dart
+    // tz.initializeTimeZones();
 
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+    
+    await requestPermissions();
+  }
+
+  // ... (The rest of the file remains the same)
+  Future<void> requestPermissions() async {
+    await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestNotificationsPermission();
+    
+    await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>()
+        ?.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
   }
 
   Future<void> scheduleWeeklyAttendanceReminders() async {
+    await cancelAllNotifications();
+
     const AndroidNotificationDetails androidNotificationDetails =
         AndroidNotificationDetails(
       'attendance_reminder_channel',
@@ -50,7 +68,6 @@ class NotificationService {
     const NotificationDetails notificationDetails =
         NotificationDetails(android: androidNotificationDetails);
 
-    // Schedule for Monday to Friday at 6 PM
     for (int i = 1; i <= 5; i++) { // 1=Monday, 5=Friday
       await flutterLocalNotificationsPlugin.zonedSchedule(
         i, // Unique ID for each day's notification
@@ -58,7 +75,6 @@ class NotificationService {
         'Don\'t forget to mark your attendance for today!',
         _nextInstanceOfSixPM(i),
         notificationDetails,
-        // CORRECTED: Added required 'androidScheduleMode' and removed deprecated parameters
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
       );
@@ -82,10 +98,46 @@ class NotificationService {
     if (scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 7));
     }
+    
     return scheduledDate;
   }
 
   Future<void> cancelAllNotifications() async {
     await flutterLocalNotificationsPlugin.cancelAll();
+  }
+
+  Future<void> showTestNotification() async {
+    const AndroidNotificationDetails androidNotificationDetails =
+        AndroidNotificationDetails(
+      'test_channel',
+      'Test Notifications',
+      channelDescription: 'Channel for testing notifications',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+    const NotificationDetails notificationDetails =
+        NotificationDetails(android: androidNotificationDetails);
+
+    await flutterLocalNotificationsPlugin.show(
+      99,
+      'Test Notification',
+      'If you see this, notifications are working!',
+      notificationDetails,
+    );
+  }
+
+  Future<void> checkPendingNotifications() async {
+    final List<PendingNotificationRequest> pendingRequests =
+        await flutterLocalNotificationsPlugin.pendingNotificationRequests();
+    if (pendingRequests.isEmpty) {
+      debugPrint('No pending notifications found.');
+    } else {
+      debugPrint('--- PENDING NOTIFICATIONS ---');
+      for (var request in pendingRequests) {
+        debugPrint(
+            'ID: ${request.id} | Title: ${request.title} | Body: ${request.body}');
+      }
+      debugPrint('-----------------------------');
+    }
   }
 }
