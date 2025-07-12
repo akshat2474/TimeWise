@@ -10,10 +10,10 @@ class SubjectSetupScreen extends StatefulWidget {
   final bool isEditing;
 
   const SubjectSetupScreen({
-    Key? key,
+    super.key,
     this.existingSubjects,
     this.isEditing = false,
-  }) : super(key: key);
+  });
 
   @override
   State<SubjectSetupScreen> createState() => _SubjectSetupScreenState();

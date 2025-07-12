@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import 'subject_setup_screen.dart';
 import 'attendance_screen.dart';
 import 'timetable_management_screen.dart';
@@ -7,7 +8,7 @@ import '../models/timetable_model.dart';
 import '../services/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -49,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,6 +74,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 40),
+              if (hasExistingTimetable) ...[
+                _buildTodaysSchedule(context, model),
+                const SizedBox(height: 24),
+              ],
               _buildQuickActionCard(
                 context,
                 hasExistingTimetable: hasExistingTimetable,
@@ -91,7 +96,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 12),
                 _buildToolsCard(context),
               ],
-              const Spacer(),
             ],
           ),
         ),
@@ -99,18 +103,105 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuickActionCard(BuildContext context,
-      {required bool hasExistingTimetable, required TimetableModel model}) {
+  Widget _buildStyledContainer({required Widget child}) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.blue[900]!, Colors.blue[700]!],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+        color: Colors.grey[900]?.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.15),
+          width: 1.0,
         ),
-        borderRadius: BorderRadius.circular(16),
       ),
+      child: child,
+    );
+  }
+
+  Widget _buildTodaysSchedule(BuildContext context, TimetableModel model) {
+    final today = DateTime.now();
+    final dayName = DateFormat('EEEE').format(today);
+    final classesToday = model.getClassesForDay(dayName);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Today's Schedule",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+        const SizedBox(height: 12),
+        _buildStyledContainer(
+          child: classesToday.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 24.0),
+                    child: Column(
+                      children: [
+                        Icon(Icons.free_breakfast_outlined,
+                            color: Colors.grey[400], size: 32),
+                        const SizedBox(height: 8),
+                        Text(
+                          'No classes scheduled for today!',
+                          style: TextStyle(
+                              color: Colors.grey[400], fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: classesToday.length,
+                  separatorBuilder: (_, __) => Divider(
+                    color: Colors.white.withOpacity(0.1),
+                    height: 24,
+                  ),
+                  itemBuilder: (context, index) {
+                    final classInfo = classesToday[index];
+                    return Row(
+                      children: [
+                        Icon(
+                          classInfo.isTheory
+                              ? Icons.book_outlined
+                              : Icons.science_outlined,
+                          color: classInfo.isTheory
+                              ? Colors.blue[300]
+                              : Colors.green[300],
+                          size: 20,
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Text(
+                            classInfo.subject.name,
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                        Text(
+                          classInfo.timeSlot ?? 'N/A',
+                          style:
+                              TextStyle(color: Colors.grey[300], fontSize: 14),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuickActionCard(BuildContext context,
+      {required bool hasExistingTimetable, required TimetableModel model}) {
+    return _buildStyledContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -125,7 +216,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 8),
           Text(
             hasExistingTimetable
-                ? 'You have an active schedule. Track attendance or edit your timetable.'
+                ? 'You have an active schedule. Track attendance or manage your timetables.'
                 : 'Set up your subjects and timetable to start tracking your attendance.',
             style: TextStyle(
               color: Colors.white.withOpacity(0.8),
@@ -149,11 +240,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
               icon: Icon(
-                hasExistingTimetable ? Icons.edit : Icons.add,
+                hasExistingTimetable ? Icons.edit_note : Icons.add_circle,
                 size: 20,
               ),
               label: Text(
-                hasExistingTimetable ? 'Edit Timetable' : 'Setup Timetable',
+                hasExistingTimetable ? 'Edit Subjects' : 'Setup Timetable',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -183,7 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   );
                 },
-                icon: const Icon(Icons.layers, size: 20),
+                icon: const Icon(Icons.layers_outlined, size: 20),
                 label: const Text('Manage Templates'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.white,
@@ -202,12 +293,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildToolsCard(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[900],
-        borderRadius: BorderRadius.circular(12),
-      ),
+    return _buildStyledContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -259,48 +345,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
                   ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          const Divider(),
-          const SizedBox(height: 16),
-          Text(
-            'Developer Tools',
-            style: TextStyle(color: Colors.grey[400], fontSize: 12),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {
-                    NotificationService().showTestNotification();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Test notification sent!'),
-                        backgroundColor: Colors.blue,
-                      ),
-                    );
-                  },
-                  child: const Text('Send Test'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {
-                    NotificationService().checkPendingNotifications();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content:
-                            Text('Checked schedule. See debug console.'),
-                        backgroundColor: Colors.purple,
-                      ),
-                    );
-                  },
-                  child: const Text('Check Scheduled'),
                 ),
               ),
             ],

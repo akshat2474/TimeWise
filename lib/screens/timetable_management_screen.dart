@@ -20,7 +20,7 @@ class TimetableTemplate {
 }
 
 class TimetableManagementScreen extends StatefulWidget {
-  const TimetableManagementScreen({Key? key}) : super(key: key);
+  const TimetableManagementScreen({super.key});
 
   @override
   State<TimetableManagementScreen> createState() =>

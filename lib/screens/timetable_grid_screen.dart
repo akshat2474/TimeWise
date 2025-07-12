@@ -6,7 +6,7 @@ import '../models/timetable_model.dart';
 import '../models/subject_model.dart';
 
 class TimetableGridScreen extends StatefulWidget {
-  const TimetableGridScreen({Key? key}) : super(key: key);
+  const TimetableGridScreen({super.key});
 
   @override
   State<TimetableGridScreen> createState() => _TimetableGridScreenState();

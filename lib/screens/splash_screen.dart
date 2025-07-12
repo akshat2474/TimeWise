@@ -4,7 +4,7 @@ import 'dart:math' as math;
 import 'package:url_launcher/url_launcher.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -407,7 +407,6 @@ class SubtleGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     _drawSubtleGrid(canvas, size);
-    _drawFloatingParticles(canvas, size);
     _drawSubtleGradientOverlay(canvas, size);
   }
 
@@ -435,23 +434,6 @@ class SubtleGridPainter extends CustomPainter {
     }
   }
 
-  void _drawFloatingParticles(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.fill;
-    final random = math.Random(42);
-
-    for (int i = 0; i < 12; i++) {
-      final baseX = random.nextDouble() * size.width;
-      final baseY = random.nextDouble() * size.height;
-      final phase = (progress + i * 0.2) % 1;
-      final floatX = baseX + math.sin(phase * 2 * math.pi) * 12;
-      final floatY = baseY + math.cos(phase * 2 * math.pi) * 8;
-      final opacity = (math.sin(phase * math.pi) * 0.06).clamp(0.02, 0.06);
-      final particleSize = 0.8 + math.sin(phase * math.pi) * 0.4;
-      paint.color = Colors.white.withOpacity(opacity);
-      canvas.drawCircle(Offset(floatX, floatY), particleSize, paint);
-    }
-  }
-
   void _drawSubtleGradientOverlay(Canvas canvas, Size size) {
     final paint = Paint();
     final gradient = RadialGradient(
@@ -474,7 +456,8 @@ class SubtleGridPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant SubtleGridPainter oldDelegate) =>
+      progress != oldDelegate.progress;
 }
 
 class SmoothLoadingBarWithRunnerPainter extends CustomPainter {
