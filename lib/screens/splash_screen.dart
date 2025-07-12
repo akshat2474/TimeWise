@@ -4,7 +4,7 @@ import 'dart:math' as math;
 import 'package:url_launcher/url_launcher.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  const SplashScreen({Key? key}) : super(key: key);
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -47,7 +47,7 @@ class _SplashScreenState extends State<SplashScreen>
       vsync: this,
     );
     _backgroundController = AnimationController(
-      duration: const Duration(milliseconds: 8000),
+      duration: const Duration(milliseconds: 10000),
       vsync: this,
     );
     _glowController = AnimationController(
@@ -117,27 +117,7 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _launchURL(String urlString) async {
     try {
       final Uri url = Uri.parse(urlString);
-      bool launched = false;
-      try {
-        launched = await launchUrl(
-          url,
-          mode: LaunchMode.externalApplication,
-        );
-      } catch (e) {
-        try {
-          launched = await launchUrl(
-            url,
-            mode: LaunchMode.platformDefault,
-          );
-        } catch (e) {
-          launched = await launchUrl(
-            url,
-            mode: LaunchMode.inAppWebView,
-          );
-        }
-      }
-
-      if (!launched) {
+      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
         throw 'Could not launch $urlString';
       }
     } catch (e) {
@@ -147,7 +127,6 @@ class _SplashScreenState extends State<SplashScreen>
             content: Text(
                 'Could not open link. Please check your internet connection.'),
             backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
           ),
         );
       }
@@ -175,9 +154,7 @@ class _SplashScreenState extends State<SplashScreen>
             colors: [
               Color(0xFF0A0A0A),
               Color(0xFF000000),
-              Color(0xFF0F0F0F),
             ],
-            stops: [0.0, 0.6, 1.0],
           ),
         ),
         child: Stack(
@@ -187,14 +164,13 @@ class _SplashScreenState extends State<SplashScreen>
               builder: (context, child) {
                 return CustomPaint(
                   size: MediaQuery.of(context).size,
-                  painter: SubtleGridPainter(_backgroundAnimation.value),
+                  painter: StarfieldPainter(_backgroundAnimation.value),
                 );
               },
             ),
             SafeArea(
               child: Column(
                 children: [
-                  const SizedBox(height: 32),
                   Expanded(
                     child: _buildMainContent(),
                   ),
@@ -216,96 +192,64 @@ class _SplashScreenState extends State<SplashScreen>
             offset: Offset(0, _slideAnimation.value),
             child: Opacity(
               opacity: _fadeAnimation.value,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  AnimatedBuilder(
-                    animation: _glowController,
-                    builder: (context, child) {
-                      final glowIntensity = 0.3 + _glowAnimation.value * 0.2;
-                      return Text(
-                        'TimeWise',
-                        style: TextStyle(
-                          fontSize: 76,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.white,
-                          letterSpacing: 2,
-                          height: 1,
-                          shadows: [
-                            Shadow(
-                              color:
-                                  Colors.white.withOpacity(glowIntensity * 0.4),
-                              blurRadius: 15,
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Smart Attendance Tracker',
-                    style: TextStyle(
-                      fontSize: 19,
-                      color: Colors.grey[300],
-                      fontWeight: FontWeight.w300,
-                      letterSpacing: 1.2,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Spacer(flex: 3),
+                    AnimatedBuilder(
+                      animation: _glowController,
+                      builder: (context, child) {
+                        final glowIntensity = 0.3 + _glowAnimation.value * 0.2;
+                        return Text(
+                          'TimeWise',
+                          style: TextStyle(
+                            fontSize: 76,
+                            fontWeight: FontWeight.w300,
+                            color: Colors.white,
+                            letterSpacing: 2,
+                            height: 1,
+                            shadows: [
+                              Shadow(
+                                color: Colors.blue
+                                    .withOpacity(glowIntensity * 0.3),
+                                blurRadius: 20,
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Delhi Technological University',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[500],
-                      fontWeight: FontWeight.w300,
-                      letterSpacing: 0.8,
+                    const SizedBox(height: 12),
+                    Text(
+                      'Smart Attendance Tracker',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.grey[300],
+                        fontWeight: FontWeight.w300,
+                        letterSpacing: 1.2,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 70),
-                  if (_showContent) _buildLoadingBarWithRunner(),
-                ],
+                    const Spacer(flex: 2),
+                    if (_showContent) _buildLoadingVisual(),
+                  ],
+                ),
               ),
             ),
           );
         });
   }
 
-  Widget _buildLoadingBarWithRunner() {
+  Widget _buildLoadingVisual() {
     return AnimatedBuilder(
       animation: _loadingController,
       builder: (context, child) {
-        return Column(
-          children: [
-            Text(
-              'Loading...',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[400],
-                fontWeight: FontWeight.w300,
-                letterSpacing: 1,
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: 200,
-              height: 50,
-              child: CustomPaint(
-                painter:
-                    SmoothLoadingBarWithRunnerPainter(_loadingAnimation.value),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              '${(_loadingAnimation.value * 100).toInt()}%',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[500],
-                fontWeight: FontWeight.w300,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
+        return SizedBox(
+          width: 200,
+          height: 50,
+          child: CustomPaint(
+            painter: SmoothLoadingBarWithRunnerPainter(_loadingAnimation.value),
+          ),
         );
       },
     );
@@ -313,7 +257,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   Widget _buildFooter() {
     return AnimatedBuilder(
-      animation: _fadeAnimation,
+      animation: _fadeController,
       builder: (context, child) {
         return Opacity(
           opacity: _fadeAnimation.value * 0.85,
@@ -366,13 +310,6 @@ class _SplashScreenState extends State<SplashScreen>
             width: 1.2,
           ),
           borderRadius: BorderRadius.circular(22),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.white.withOpacity(0.1),
-              blurRadius: 8,
-              spreadRadius: 1,
-            ),
-          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -399,64 +336,36 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
-class SubtleGridPainter extends CustomPainter {
+class StarfieldPainter extends CustomPainter {
   final double progress;
+  final int starCount = 200;
+  final math.Random random = math.Random(1337);
 
-  SubtleGridPainter(this.progress);
+  StarfieldPainter(this.progress);
 
   @override
   void paint(Canvas canvas, Size size) {
-    _drawSubtleGrid(canvas, size);
-    _drawSubtleGradientOverlay(canvas, size);
-  }
+    final paint = Paint()..style = PaintingStyle.fill;
 
-  void _drawSubtleGrid(Canvas canvas, Size size) {
-    final paint = Paint()..strokeWidth = 0.5;
-    const spacing = 80.0;
-    final offset = (progress * spacing * 0.3) % spacing;
+    for (int i = 0; i < starCount; i++) {
+      final starRandom = math.Random(i);
+      final depth = starRandom.nextDouble();
 
-    for (double x = -spacing + offset; x < size.width + spacing; x += spacing) {
-      final linePhase = (x / size.width + progress * 0.5) % 1;
-      final opacity = (0.02 + math.sin(linePhase * 2 * math.pi) * 0.015)
-          .clamp(0.005, 0.035);
-      paint.color = Colors.white.withOpacity(opacity);
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+      final opacity = (0.2 + (depth * 0.8)).clamp(0.2, 1.0);
+      final starSize = 0.5 + (depth * 1.5);
+
+      final initialX = starRandom.nextDouble() * size.width;
+      final initialY = starRandom.nextDouble() * size.height;
+
+      final y = (initialY + (progress * 100 * depth)) % size.height;
+
+      paint.color = Colors.white.withOpacity(opacity * 0.5);
+      canvas.drawCircle(Offset(initialX, y), starSize, paint);
     }
-
-    for (double y = -spacing + offset;
-        y < size.height + spacing;
-        y += spacing) {
-      final linePhase = (y / size.height + progress * 0.5) % 1;
-      final opacity = (0.02 + math.sin(linePhase * 2 * math.pi) * 0.015)
-          .clamp(0.005, 0.035);
-      paint.color = Colors.white.withOpacity(opacity);
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  void _drawSubtleGradientOverlay(Canvas canvas, Size size) {
-    final paint = Paint();
-    final gradient = RadialGradient(
-      center: Alignment.center,
-      radius: 1.5,
-      colors: [
-        Colors.white.withOpacity(0.015),
-        Colors.transparent,
-        Colors.black.withOpacity(0.08),
-      ],
-      stops: const [0.0, 0.7, 1.0],
-    );
-    paint.shader = gradient.createShader(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-    );
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      paint,
-    );
   }
 
   @override
-  bool shouldRepaint(covariant SubtleGridPainter oldDelegate) =>
+  bool shouldRepaint(covariant StarfieldPainter oldDelegate) =>
       progress != oldDelegate.progress;
 }
 
@@ -526,7 +435,6 @@ class SmoothLoadingBarWithRunnerPainter extends CustomPainter {
 
     _drawSmoothArms(canvas, center, paint, runTime);
     _drawSmoothLegs(canvas, center, paint, runTime);
-    _drawMotionLines(canvas, center, paint, runTime);
   }
 
   void _drawSmoothArms(
@@ -581,25 +489,6 @@ class SmoothLoadingBarWithRunnerPainter extends CustomPainter {
       ),
       paint,
     );
-  }
-
-  void _drawMotionLines(
-      Canvas canvas, Offset center, Paint paint, double runTime) {
-    final motionPaint = Paint()
-      ..color = Colors.white.withOpacity(0.3)
-      ..strokeWidth = 1
-      ..strokeCap = StrokeCap.round;
-
-    for (int i = 0; i < 3; i++) {
-      final lineX = center.dx - 15 - (i * 4);
-      final lineY = center.dy - 5 + (i * 1.5);
-      final lineLength = 6 + math.sin(runTime * 2 * math.pi + i) * 2;
-      canvas.drawLine(
-        Offset(lineX, lineY),
-        Offset(lineX - lineLength, lineY),
-        motionPaint,
-      );
-    }
   }
 
   @override
