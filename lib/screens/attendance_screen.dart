@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:timewise_dtu/models/subject_model.dart';
 import 'timetable_grid_screen.dart';
 import '../models/timetable_model.dart';
 
@@ -218,7 +219,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         label: 'Mass Bunk',
                         color: Colors.orange,
                         onTap: () {
-                          _markAttendance(classInfo, AttendanceStatus.massBunk);
+                          _markAttendance(
+                              classInfo, AttendanceStatus.massBunk);
                           Navigator.pop(context);
                           _showStatusMessage(
                               'Marked as Mass Bunk for ${classInfo.subject.name}',
@@ -263,7 +265,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     if (classInfo.timeSlot == null) return;
     final model = context.read<TimetableModel>();
     final hours = classInfo.duration.toDouble();
-
     model.markAttendance(
       classInfo.subject.name,
       classInfo.isTheory ? 'theory' : 'practical',
@@ -451,8 +452,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           final dayName = _getDayName(_selectedDate);
           final classesForSelectedDay = _isWeekday(_selectedDate)
               ? model.getClassesForDay(dayName)
-              : <ClassInfo>[];
-
+              : [];
           return Scaffold(
             backgroundColor: Colors.black,
             appBar: AppBar(
@@ -484,7 +484,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       color: Colors.grey[900],
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: TableCalendar<AttendanceRecord>(
+                    child: TableCalendar(
                       firstDay: DateTime.utc(2020, 1, 1),
                       lastDay: DateTime.utc(2030, 12, 31),
                       focusedDay: _focusedDate,
@@ -558,7 +558,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           Row(
                             children: [
                               Text(
-                                'Classes for ${dayName}',
+                                'Classes for $dayName',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 20,
@@ -585,53 +585,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           ),
                           const SizedBox(height: 16),
                           if (!_isWeekday(_selectedDate)) ...[
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[900],
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                    color: Colors.grey[700]!, width: 1),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.weekend,
-                                      color: Colors.grey[400], size: 24),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    'No classes scheduled for weekends',
-                                    style: TextStyle(
-                                      color: Colors.grey[400],
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                            _buildInfoCard(
+                                'No classes scheduled for weekends',
+                                Icons.weekend),
                           ] else if (classesForSelectedDay.isEmpty) ...[
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[900],
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                    color: Colors.grey[700]!, width: 1),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.free_breakfast,
-                                      color: Colors.grey[400], size: 24),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    'No classes scheduled for this day',
-                                    style: TextStyle(
-                                      color: Colors.grey[400],
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                            _buildInfoCard('No classes scheduled for this day',
+                                Icons.free_breakfast),
                           ] else ...[
                             ...classesForSelectedDay.map((classInfo) {
                               final status = classInfo.timeSlot == null
@@ -644,122 +603,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                       _selectedDate,
                                       classInfo.timeSlot!,
                                     );
-
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: GestureDetector(
-                                  onTap: () => _showAttendanceDialog(classInfo),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[900],
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: classInfo.isTheory
-                                            ? Colors.blue
-                                            : Colors.green,
-                                        width: 2,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  Text(
-                                                    classInfo.subject.name,
-                                                    style: const TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 18,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  Container(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 8,
-                                                        vertical: 4),
-                                                    decoration: BoxDecoration(
-                                                      color: classInfo.isTheory
-                                                          ? Colors.blue
-                                                          : Colors.green,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              12),
-                                                    ),
-                                                    child: Text(
-                                                      classInfo.isTheory
-                                                          ? 'Theory'
-                                                          : 'Practical',
-                                                      style: const TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 12,
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 8),
-                                              Text(
-                                                'Duration: ${classInfo.duration}h',
-                                                style: TextStyle(
-                                                  color: Colors.grey[400],
-                                                  fontSize: 14,
-                                                ),
-                                              ),
-                                              Text(
-                                                'Time: ${classInfo.timeSlot ?? 'N/A'}',
-                                                style: TextStyle(
-                                                  color: Colors.grey[400],
-                                                  fontSize: 12,
-                                                  fontStyle: FontStyle.italic,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        if (status != null)
-                                          Container(
-                                            padding: const EdgeInsets.all(8),
-                                            decoration: BoxDecoration(
-                                              color: _getStatusColor(status)
-                                                  .withOpacity(0.2),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              border: Border.all(
-                                                  color:
-                                                      _getStatusColor(status),
-                                                  width: 1),
-                                            ),
-                                            child: Icon(_getStatusIcon(status),
-                                                color: _getStatusColor(status),
-                                                size: 20),
-                                          )
-                                        else
-                                          Container(
-                                            padding: const EdgeInsets.all(8),
-                                            decoration: BoxDecoration(
-                                              color: Colors.grey[700],
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: Icon(Icons.touch_app,
-                                                color: Colors.grey[400],
-                                                size: 20),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
+                              return _buildClassCard(classInfo, status);
                             }).toList(),
                           ],
                           const SizedBox(height: 32),
@@ -777,276 +621,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 model.attendanceData[subject.name]!['theory']!;
                             final practicalData = model
                                 .attendanceData[subject.name]!['practical']!;
-
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 16),
-                              child: Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[900],
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                      color: Colors.grey[700]!, width: 1),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    SizedBox(
-                                      height: 48,
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            subject.name,
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                          Text(
-                                            subject.creditDescription,
-                                            style: TextStyle(
-                                              color: Colors.grey[500],
-                                              fontSize: 11,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    if (theoryData.totalScheduledHours > 0) ...[
-                                      Row(
-                                        children: [
-                                          Icon(Icons.book,
-                                              color: Colors.blue[400],
-                                              size: 16),
-                                          const SizedBox(width: 8),
-                                          const Text(
-                                            'Theory',
-                                            style: TextStyle(
-                                              color: Colors.blue,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Flexible(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'Overall: ${theoryData.percentage.toStringAsFixed(1)}%',
-                                                  style: TextStyle(
-                                                    color: _getPercentageColor(
-                                                        theoryData.percentage),
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  '${theoryData.totalHoursAttended.toStringAsFixed(1)}/${theoryData.totalScheduledHours.toStringAsFixed(1)}h',
-                                                  style: TextStyle(
-                                                    color: Colors.grey[400],
-                                                    fontSize: 12,
-                                                  ),
-                                                ),
-                                                if (theoryData.hoursCanMiss > 0)
-                                                  Text(
-                                                    'Can miss: ${theoryData.hoursCanMiss.toStringAsFixed(1)}h more',
-                                                    style: TextStyle(
-                                                      color: Colors.green[300],
-                                                      fontSize: 11,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  )
-                                                else
-                                                  Text(
-                                                    'Cannot miss any more classes',
-                                                    style: TextStyle(
-                                                      color: Colors.red[300],
-                                                      fontSize: 11,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  ),
-                                              ],
-                                            ),
-                                          ),
-                                          if (theoryData
-                                                  .hoursHeldExclMassBunk !=
-                                              theoryData.totalHoursHeld)
-                                            Flexible(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.end,
-                                                children: [
-                                                  Text(
-                                                    'Excl MB: ${theoryData.percentageExclMassBunk.toStringAsFixed(1)}%',
-                                                    style: TextStyle(
-                                                      color: Colors.orange[300],
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                  Text(
-                                                    '${theoryData.hoursAttendedExclMassBunk.toStringAsFixed(1)}/${theoryData.hoursHeldExclMassBunk.toStringAsFixed(1)}h',
-                                                    style: TextStyle(
-                                                      color: Colors.grey[500],
-                                                      fontSize: 11,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      LinearProgressIndicator(
-                                        value: theoryData.percentage / 100,
-                                        backgroundColor: Colors.grey[700],
-                                        valueColor: AlwaysStoppedAnimation(
-                                            _getPercentageColor(
-                                                theoryData.percentage)),
-                                      ),
-                                      const SizedBox(height: 16),
-                                    ],
-                                    if (subject.hasPractical &&
-                                        practicalData.totalScheduledHours >
-                                            0) ...[
-                                      Row(
-                                        children: [
-                                          Icon(Icons.science,
-                                              color: Colors.green[400],
-                                              size: 16),
-                                          const SizedBox(width: 8),
-                                          const Text(
-                                            'Practical',
-                                            style: TextStyle(
-                                              color: Colors.green,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Flexible(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'Overall: ${practicalData.percentage.toStringAsFixed(1)}%',
-                                                  style: TextStyle(
-                                                    color: _getPercentageColor(
-                                                        practicalData
-                                                            .percentage),
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  '${practicalData.totalHoursAttended.toStringAsFixed(1)}/${practicalData.totalScheduledHours.toStringAsFixed(1)}h',
-                                                  style: TextStyle(
-                                                    color: Colors.grey[400],
-                                                    fontSize: 12,
-                                                  ),
-                                                ),
-                                                if (practicalData.hoursCanMiss >
-                                                    0)
-                                                  Text(
-                                                    'Can miss: ${practicalData.hoursCanMiss.toStringAsFixed(1)}h more',
-                                                    style: TextStyle(
-                                                      color: Colors.green[300],
-                                                      fontSize: 11,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  )
-                                                else
-                                                  Text(
-                                                    'Cannot miss any more classes',
-                                                    style: TextStyle(
-                                                      color: Colors.red[300],
-                                                      fontSize: 11,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  ),
-                                              ],
-                                            ),
-                                          ),
-                                          if (practicalData
-                                                  .hoursHeldExclMassBunk !=
-                                              practicalData.totalHoursHeld)
-                                            Flexible(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.end,
-                                                children: [
-                                                  Text(
-                                                    'Excl MB: ${practicalData.percentageExclMassBunk.toStringAsFixed(1)}%',
-                                                    style: TextStyle(
-                                                      color: Colors.orange[300],
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                  Text(
-                                                    '${practicalData.hoursAttendedExclMassBunk.toStringAsFixed(1)}/${practicalData.hoursHeldExclMassBunk.toStringAsFixed(1)}h',
-                                                    style: TextStyle(
-                                                      color: Colors.grey[500],
-                                                      fontSize: 11,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      LinearProgressIndicator(
-                                        value: practicalData.percentage / 100,
-                                        backgroundColor: Colors.grey[700],
-                                        valueColor: AlwaysStoppedAnimation(
-                                            _getPercentageColor(
-                                                practicalData.percentage)),
-                                      ),
-                                    ],
-                                    if (theoryData.totalScheduledHours == 0 &&
-                                        (!subject.hasPractical ||
-                                            practicalData.totalScheduledHours ==
-                                                0))
-                                      Text(
-                                        'No attendance data yet',
-                                        style: TextStyle(
-                                          color: Colors.grey[500],
-                                          fontSize: 14,
-                                          fontStyle: FontStyle.italic,
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            );
+                            return _buildSummaryCard(
+                                subject, theoryData, practicalData);
                           }).toList(),
                         ],
                       ),
@@ -1058,6 +634,295 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildInfoCard(String text, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[700]!, width: 1),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.grey[400], size: 24),
+          const SizedBox(width: 12),
+          Text(
+            text,
+            style: TextStyle(
+              color: Colors.grey[400],
+              fontSize: 16,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildClassCard(ClassInfo classInfo, AttendanceStatus? status) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: GestureDetector(
+        onTap: () => _showAttendanceDialog(classInfo),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey[900],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: classInfo.isTheory ? Colors.blue : Colors.green,
+              width: 2,
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          classInfo.subject.name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color:
+                                classInfo.isTheory ? Colors.blue : Colors.green,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            classInfo.isTheory ? 'Theory' : 'Practical',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Duration: ${classInfo.duration}h',
+                      style: TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: 14,
+                      ),
+                    ),
+                    Text(
+                      'Time: ${classInfo.timeSlot ?? 'N/A'}',
+                      style: TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (status != null)
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: _getStatusColor(status).withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                        color: _getStatusColor(status), width: 1),
+                  ),
+                  child: Icon(_getStatusIcon(status),
+                      color: _getStatusColor(status), size: 20),
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[700],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.touch_app,
+                      color: Colors.grey[400], size: 20),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSummaryCard(Subject subject, AttendanceSummary theoryData,
+      AttendanceSummary practicalData) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey[900],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey[700]!, width: 1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              height: 48,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    subject.name,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Text(
+                    subject.creditDescription,
+                    style: TextStyle(
+                      color: Colors.grey[500],
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            if (theoryData.totalScheduledHours > 0) ...[
+              _buildAttendanceDetail(
+                  'Theory', theoryData, Colors.blue, Icons.book),
+              const SizedBox(height: 16),
+            ],
+            if (subject.hasPractical &&
+                practicalData.totalScheduledHours > 0) ...[
+              _buildAttendanceDetail(
+                  'Practical', practicalData, Colors.green, Icons.science),
+            ],
+            if (theoryData.totalScheduledHours == 0 &&
+                (!subject.hasPractical ||
+                    practicalData.totalScheduledHours == 0))
+              Text(
+                'No attendance data yet',
+                style: TextStyle(
+                  color: Colors.grey[500],
+                  fontSize: 14,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAttendanceDetail(String title, AttendanceSummary data,
+      MaterialColor color, IconData icon) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, color: color[400], size: 16),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: TextStyle(
+                color: color,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Overall: ${data.percentage.toStringAsFixed(1)}%',
+                    style: TextStyle(
+                      color: _getPercentageColor(data.percentage),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    '${data.totalHoursAttended.toStringAsFixed(1)}/${data.totalScheduledHours.toStringAsFixed(1)}h',
+                    style: TextStyle(
+                      color: Colors.grey[400],
+                      fontSize: 12,
+                    ),
+                  ),
+                  if (data.hoursCanMiss > 0)
+                    Text(
+                      'Can miss: ${data.hoursCanMiss.toStringAsFixed(1)}h more',
+                      style: TextStyle(
+                        color: Colors.green[300],
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    )
+                  else
+                    Text(
+                      'Cannot miss any more classes',
+                      style: TextStyle(
+                        color: Colors.red[300],
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (data.hoursHeldExclMassBunk != data.totalHoursHeld)
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Excl MB: ${data.percentageExclMassBunk.toStringAsFixed(1)}%',
+                      style: TextStyle(
+                        color: Colors.orange[300],
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      '${data.hoursAttendedExclMassBunk.toStringAsFixed(1)}/${data.hoursHeldExclMassBunk.toStringAsFixed(1)}h',
+                      style: TextStyle(
+                        color: Colors.grey[500],
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        LinearProgressIndicator(
+          value: data.percentage / 100,
+          backgroundColor: Colors.grey[700],
+          valueColor: AlwaysStoppedAnimation(
+            _getPercentageColor(data.percentage),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -38,22 +38,18 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(milliseconds: 1800),
       vsync: this,
     );
-
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 1400),
       vsync: this,
     );
-
     _loadingController = AnimationController(
       duration: const Duration(milliseconds: 3000),
       vsync: this,
     );
-
     _backgroundController = AnimationController(
       duration: const Duration(milliseconds: 8000),
       vsync: this,
     );
-
     _glowController = AnimationController(
       duration: const Duration(milliseconds: 3000),
       vsync: this,
@@ -82,16 +78,9 @@ class _SplashScreenState extends State<SplashScreen>
       parent: _loadingController,
       curve: Curves.easeInOut,
     ));
-
-    _backgroundAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(_backgroundController);
-
-    _glowAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
+    _backgroundAnimation =
+        Tween<double>(begin: 0.0, end: 1.0).animate(_backgroundController);
+    _glowAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
       parent: _glowController,
       curve: Curves.easeInOut,
     ));
@@ -106,22 +95,16 @@ class _SplashScreenState extends State<SplashScreen>
     );
     _backgroundController.repeat();
     _glowController.repeat(reverse: true);
-
     await Future.delayed(const Duration(milliseconds: 400));
-
     _fadeController.forward();
     _slideController.forward();
-
     await Future.delayed(const Duration(milliseconds: 700));
-
     _loadingController.forward();
-
     setState(() {
       _showContent = true;
     });
 
     await Future.delayed(const Duration(milliseconds: 3200));
-
     if (mounted) {
       _navigateToHome();
     }
@@ -134,9 +117,7 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _launchURL(String urlString) async {
     try {
       final Uri url = Uri.parse(urlString);
-
       bool launched = false;
-
       try {
         launched = await launchUrl(
           url,
@@ -229,66 +210,65 @@ class _SplashScreenState extends State<SplashScreen>
 
   Widget _buildMainContent() {
     return AnimatedBuilder(
-      animation: _slideController,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(0, _slideAnimation.value),
-          child: Opacity(
-            opacity: _fadeAnimation.value,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AnimatedBuilder(
-                  animation: _glowController,
-                  builder: (context, child) {
-                    final glowIntensity = 0.3 + _glowAnimation.value * 0.2;
-                    return Text(
-                      'TimeWise',
-                      style: TextStyle(
-                        fontSize: 76,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.white,
-                        letterSpacing: 2,
-                        height: 1,
-                        shadows: [
-                          Shadow(
-                            color:
-                                Colors.white.withOpacity(glowIntensity * 0.4),
-                            blurRadius: 15,
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Smart Attendance Tracker',
-                  style: TextStyle(
-                    fontSize: 19,
-                    color: Colors.grey[300],
-                    fontWeight: FontWeight.w300,
-                    letterSpacing: 1.2,
+        animation: Listenable.merge([_slideController, _fadeController]),
+        builder: (context, child) {
+          return Transform.translate(
+            offset: Offset(0, _slideAnimation.value),
+            child: Opacity(
+              opacity: _fadeAnimation.value,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AnimatedBuilder(
+                    animation: _glowController,
+                    builder: (context, child) {
+                      final glowIntensity = 0.3 + _glowAnimation.value * 0.2;
+                      return Text(
+                        'TimeWise',
+                        style: TextStyle(
+                          fontSize: 76,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.white,
+                          letterSpacing: 2,
+                          height: 1,
+                          shadows: [
+                            Shadow(
+                              color:
+                                  Colors.white.withOpacity(glowIntensity * 0.4),
+                              blurRadius: 15,
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Delhi Technological University',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[500],
-                    fontWeight: FontWeight.w300,
-                    letterSpacing: 0.8,
+                  const SizedBox(height: 12),
+                  Text(
+                    'Smart Attendance Tracker',
+                    style: TextStyle(
+                      fontSize: 19,
+                      color: Colors.grey[300],
+                      fontWeight: FontWeight.w300,
+                      letterSpacing: 1.2,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 70),
-                if (_showContent) _buildLoadingBarWithRunner(),
-              ],
+                  const SizedBox(height: 10),
+                  Text(
+                    'Delhi Technological University',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[500],
+                      fontWeight: FontWeight.w300,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(height: 70),
+                  if (_showContent) _buildLoadingBarWithRunner(),
+                ],
+              ),
             ),
-          ),
-        );
-      },
-    );
+          );
+        });
   }
 
   Widget _buildLoadingBarWithRunner() {
@@ -433,9 +413,9 @@ class SubtleGridPainter extends CustomPainter {
 
   void _drawSubtleGrid(Canvas canvas, Size size) {
     final paint = Paint()..strokeWidth = 0.5;
-
     const spacing = 80.0;
     final offset = (progress * spacing * 0.3) % spacing;
+
     for (double x = -spacing + offset; x < size.width + spacing; x += spacing) {
       final linePhase = (x / size.width + progress * 0.5) % 1;
       final opacity = (0.02 + math.sin(linePhase * 2 * math.pi) * 0.015)
@@ -462,14 +442,11 @@ class SubtleGridPainter extends CustomPainter {
     for (int i = 0; i < 12; i++) {
       final baseX = random.nextDouble() * size.width;
       final baseY = random.nextDouble() * size.height;
-
       final phase = (progress + i * 0.2) % 1;
       final floatX = baseX + math.sin(phase * 2 * math.pi) * 12;
       final floatY = baseY + math.cos(phase * 2 * math.pi) * 8;
-
       final opacity = (math.sin(phase * math.pi) * 0.06).clamp(0.02, 0.06);
       final particleSize = 0.8 + math.sin(phase * math.pi) * 0.4;
-
       paint.color = Colors.white.withOpacity(opacity);
       canvas.drawCircle(Offset(floatX, floatY), particleSize, paint);
     }
@@ -477,7 +454,6 @@ class SubtleGridPainter extends CustomPainter {
 
   void _drawSubtleGradientOverlay(Canvas canvas, Size size) {
     final paint = Paint();
-
     final gradient = RadialGradient(
       center: Alignment.center,
       radius: 1.5,
@@ -488,11 +464,9 @@ class SubtleGridPainter extends CustomPainter {
       ],
       stops: const [0.0, 0.7, 1.0],
     );
-
     paint.shader = gradient.createShader(
       Rect.fromLTWH(0, 0, size.width, size.height),
     );
-
     canvas.drawRect(
       Rect.fromLTWH(0, 0, size.width, size.height),
       paint,
@@ -519,12 +493,10 @@ class SmoothLoadingBarWithRunnerPainter extends CustomPainter {
     final paint = Paint()
       ..color = Colors.white.withOpacity(0.1)
       ..style = PaintingStyle.fill;
-
     final rect = RRect.fromRectAndRadius(
       Rect.fromLTWH(0, size.height - 8, size.width, 6),
       const Radius.circular(3),
     );
-
     canvas.drawRRect(rect, paint);
   }
 
@@ -532,15 +504,12 @@ class SmoothLoadingBarWithRunnerPainter extends CustomPainter {
     final paint = Paint()
       ..color = Colors.white.withOpacity(0.8)
       ..style = PaintingStyle.fill;
-
     final fillWidth = size.width * progress;
-
     if (fillWidth > 0) {
       final rect = RRect.fromRectAndRadius(
         Rect.fromLTWH(0, size.height - 8, fillWidth, 6),
         const Radius.circular(3),
       );
-
       canvas.drawRRect(rect, paint);
     }
   }
@@ -551,17 +520,20 @@ class SmoothLoadingBarWithRunnerPainter extends CustomPainter {
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
+
     final runnerX = (size.width - 20) * progress + 10;
     final runnerY = size.height - 20;
     final center = Offset(runnerX, runnerY);
 
     final runTime = progress * 12;
     final headBob = math.sin(runTime * 2 * math.pi) * 0.5;
+
     canvas.drawCircle(
       Offset(center.dx, center.dy - 15 + headBob),
       3,
       paint,
     );
+
     final bodyLean = math.sin(runTime * 2 * math.pi) * 0.3;
     canvas.drawLine(
       Offset(center.dx, center.dy - 12 + headBob),
@@ -579,6 +551,7 @@ class SmoothLoadingBarWithRunnerPainter extends CustomPainter {
     const armLength = 8.0;
     final leftArmAngle = math.sin(runTime * 2 * math.pi) * 0.6;
     final rightArmAngle = math.sin(runTime * 2 * math.pi + math.pi) * 0.6;
+
     canvas.drawLine(
       Offset(center.dx, center.dy - 5),
       Offset(
@@ -601,7 +574,6 @@ class SmoothLoadingBarWithRunnerPainter extends CustomPainter {
   void _drawSmoothLegs(
       Canvas canvas, Offset center, Paint paint, double runTime) {
     const legLength = 10.0;
-
     final leftLegAngle = math.sin(runTime * 2 * math.pi + math.pi) * 0.8;
     final rightLegAngle = math.sin(runTime * 2 * math.pi) * 0.8;
 
@@ -618,7 +590,6 @@ class SmoothLoadingBarWithRunnerPainter extends CustomPainter {
       ),
       paint,
     );
-
     canvas.drawLine(
       Offset(center.dx, center.dy + 5),
       Offset(
@@ -640,7 +611,6 @@ class SmoothLoadingBarWithRunnerPainter extends CustomPainter {
       final lineX = center.dx - 15 - (i * 4);
       final lineY = center.dy - 5 + (i * 1.5);
       final lineLength = 6 + math.sin(runTime * 2 * math.pi + i) * 2;
-
       canvas.drawLine(
         Offset(lineX, lineY),
         Offset(lineX - lineLength, lineY),
