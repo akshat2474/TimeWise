@@ -16,7 +16,7 @@ Future<void> main() async {
   ]);
 
   tz.initializeTimeZones();
-  tz.setLocalLocation(tz.getLocation('Asia/Kolkata')); // Set your timezone
+  tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
 
   await NotificationService().init();
 

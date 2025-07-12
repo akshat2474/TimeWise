@@ -20,8 +20,8 @@ A Flutter attendance tracking app for DTU students to manage class schedules and
 
 2. Add permissions to `android/app/src/main/AndroidManifest.xml`:
    ```xml
-   
-   
+   <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+   <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
    ```
 
 3. Run the app:
@@ -55,11 +55,8 @@ dependencies:
 - **4-Credit**: 42h theory (±28h practical)
 - **2-Credit**: 28h elective OR 14h theory + 28h practical
 
-## Developer
 
-**Made by Akshat Singh**
 
-*TimeWise - Making attendance tracking simple .*
 
 
 

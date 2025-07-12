@@ -787,14 +787,14 @@ class ClassSelectionDialog extends StatefulWidget {
   final VoidCallback onClassRemoved;
 
   const ClassSelectionDialog({
-    Key? key,
+    super.key,
     required this.subjects,
     required this.currentClass,
     required this.timeSlot,
     required this.timeSlots,
     required this.onClassSelected,
     required this.onClassRemoved,
-  }) : super(key: key);
+  });
 
   @override
   State<ClassSelectionDialog> createState() => _ClassSelectionDialogState();

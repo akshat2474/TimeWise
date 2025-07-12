@@ -4,7 +4,7 @@ import 'dart:math' as math;
 import 'package:url_launcher/url_launcher.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();

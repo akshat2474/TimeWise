@@ -38,7 +38,6 @@ class _TimetableManagementScreenState extends State<TimetableManagementScreen> {
 
   void _initializeTemplates() {
     final model = context.read<TimetableModel>();
-    // In a real app, this would be loaded from storage
     _templates = [
       TimetableTemplate(
         id: 1,
@@ -50,7 +49,7 @@ class _TimetableManagementScreenState extends State<TimetableManagementScreen> {
         id: 2,
         name: 'Exam Week',
         isActive: false,
-        subjects: [], // Example of an empty template
+        subjects: [], 
       ),
     ];
   }
@@ -309,7 +308,6 @@ class _TimetableManagementScreenState extends State<TimetableManagementScreen> {
           t.isActive = false;
         }
         template.isActive = true;
-        // Here you would typically load the data for the activated template
       }
     });
   }

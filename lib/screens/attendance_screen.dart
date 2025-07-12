@@ -601,7 +601,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                         _selectedDate,
                                         classInfo.timeSlot!);
                                 return _buildClassCard(classInfo, status);
-                              }).toList(),
+                              }),
                             const SizedBox(height: 32),
                             const Text(
                               'Attendance Summary',
