@@ -2,6 +2,13 @@
 
 A Flutter attendance tracking app for DTU students to manage class schedules and monitor attendance percentages.
 
+## Screenshots
+<div align="center">
+<img src="assets/images/splash_screen.png" width="200"> 
+<img src="assets/images/attendance_tracker_1" width="200"> 
+<img src="assets/images/attendance_tracker_2.png" width="200" >
+</div>
+
 ## Features
 
 - **Timetable Management**: Configure subjects and create visual timetables
