@@ -5,7 +5,7 @@ import 'package:percent_indicator/percent_indicator.dart';
 import 'package:timewise_dtu/models/subject_model.dart';
 import 'timetable_grid_screen.dart';
 import '../models/timetable_model.dart';
-import '../theme/app_theme.dart'; 
+import '../theme/app_theme.dart';
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
@@ -28,7 +28,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   String _getDayName(DateTime date) {
     const days = [
-      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday'
     ];
     return days[date.weekday - 1];
   }
@@ -56,14 +62,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       builder: (context) => Container(
         margin: const EdgeInsets.all(8),
         padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-          top: 24, left: 24, right: 24
-        ),
+            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+            top: 24,
+            left: 24,
+            right: 24),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surface.withOpacity(0.95),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Colors.white.withOpacity(0.2))
-        ),
+            color: theme.colorScheme.surface.withOpacity(0.95),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withOpacity(0.2))),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -74,14 +80,19 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: (classInfo.isTheory ? AppTheme.accentBlue : theme.colorScheme.secondary).withOpacity(0.15),
+                      color: (classInfo.isTheory
+                              ? AppTheme.accentBlue
+                              : theme.colorScheme.secondary)
+                          .withOpacity(0.15),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
                       classInfo.isTheory
                           ? Icons.book_outlined
                           : Icons.science_outlined,
-                      color: classInfo.isTheory ? AppTheme.accentBlue : theme.colorScheme.secondary,
+                      color: classInfo.isTheory
+                          ? AppTheme.accentBlue
+                          : theme.colorScheme.secondary,
                       size: 24,
                     ),
                   ),
@@ -185,7 +196,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       Navigator.pop(context);
                     },
                   ),
-                   _buildAttendanceOption(
+                  _buildAttendanceOption(
                     icon: Icons.person_off_outlined,
                     label: 'Teacher Absent',
                     color: AppTheme.primary,
@@ -215,7 +226,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       classInfo.timeSlot!,
       hours,
     );
-     _showStatusMessage('Marked as ${_getStatusText(status)} for ${classInfo.subject.name}', _getStatusColor(status));
+    _showStatusMessage(
+        'Marked as ${_getStatusText(status)} for ${classInfo.subject.name}',
+        _getStatusColor(status));
   }
 
   Widget _buildAttendanceOption({
@@ -254,32 +267,47 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   String _getStatusText(AttendanceStatus status) {
     switch (status) {
-      case AttendanceStatus.present: return 'Present';
-      case AttendanceStatus.absent: return 'Absent';
-      case AttendanceStatus.holiday: return 'Holiday';
-      case AttendanceStatus.massBunk: return 'Mass Bunk';
-      case AttendanceStatus.teacherAbsent: return 'Teacher Absent';
+      case AttendanceStatus.present:
+        return 'Present';
+      case AttendanceStatus.absent:
+        return 'Absent';
+      case AttendanceStatus.holiday:
+        return 'Holiday';
+      case AttendanceStatus.massBunk:
+        return 'Mass Bunk';
+      case AttendanceStatus.teacherAbsent:
+        return 'Teacher Absent';
     }
   }
 
   Color _getStatusColor(AttendanceStatus status) {
     final theme = Theme.of(context);
     switch (status) {
-      case AttendanceStatus.present: return theme.colorScheme.secondary;
-      case AttendanceStatus.absent: return theme.colorScheme.error;
-      case AttendanceStatus.holiday: return Colors.grey;
-      case AttendanceStatus.massBunk: return Colors.orangeAccent;
-      case AttendanceStatus.teacherAbsent: return AppTheme.primary;
+      case AttendanceStatus.present:
+        return theme.colorScheme.secondary;
+      case AttendanceStatus.absent:
+        return theme.colorScheme.error;
+      case AttendanceStatus.holiday:
+        return Colors.grey;
+      case AttendanceStatus.massBunk:
+        return Colors.orangeAccent;
+      case AttendanceStatus.teacherAbsent:
+        return AppTheme.primary;
     }
   }
 
   IconData _getStatusIcon(AttendanceStatus status) {
     switch (status) {
-      case AttendanceStatus.present: return Icons.check_circle;
-      case AttendanceStatus.absent: return Icons.cancel;
-      case AttendanceStatus.holiday: return Icons.beach_access;
-      case AttendanceStatus.massBunk: return Icons.group_off;
-      case AttendanceStatus.teacherAbsent: return Icons.person_off;
+      case AttendanceStatus.present:
+        return Icons.check_circle;
+      case AttendanceStatus.absent:
+        return Icons.cancel;
+      case AttendanceStatus.holiday:
+        return Icons.beach_access;
+      case AttendanceStatus.massBunk:
+        return Icons.group_off;
+      case AttendanceStatus.teacherAbsent:
+        return Icons.person_off;
     }
   }
 
@@ -315,9 +343,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     return Consumer<TimetableModel>(
       builder: (context, model, child) {
         final dayName = _getDayName(_selectedDate);
-        final classesForSelectedDay = _isWeekday(_selectedDate)
-            ? model.getClassesForDay(dayName)
-            : [];
+        final classesForSelectedDay =
+            _isWeekday(_selectedDate) ? model.getClassesForDay(dayName) : [];
         return Scaffold(
           body: CustomScrollView(
             slivers: [
@@ -337,10 +364,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 child: Container(
                   margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surface.withOpacity(0.8),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withOpacity(0.1))
-                  ),
+                      color: theme.colorScheme.surface.withOpacity(0.8),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white.withOpacity(0.1))),
                   child: TableCalendar(
                     focusedDay: _focusedDate,
                     firstDay: DateTime.utc(2020),
@@ -364,35 +390,72 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       _focusedDate = focusedDay;
                     },
                     headerStyle: HeaderStyle(
-                      titleTextStyle: theme.textTheme.titleMedium!,
-                      formatButtonTextStyle: const TextStyle(color: Colors.white),
-                      formatButtonDecoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.8),
-                        borderRadius: BorderRadius.circular(8)
-                      )
-                    ),
+                        titleTextStyle: theme.textTheme.titleMedium!,
+                        formatButtonTextStyle:
+                            const TextStyle(color: Colors.white),
+                        formatButtonDecoration: BoxDecoration(
+                            color: theme.colorScheme.primary.withOpacity(0.8),
+                            borderRadius: BorderRadius.circular(8))),
                     calendarStyle: CalendarStyle(
                       defaultTextStyle: theme.textTheme.bodyMedium!,
-                      weekendTextStyle: theme.textTheme.bodyMedium!.copyWith(color: theme.colorScheme.primary.withOpacity(0.7)),
-                      selectedTextStyle: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-                      todayTextStyle: TextStyle(color: theme.colorScheme.secondary, fontWeight: FontWeight.bold),
+                      weekendTextStyle: theme.textTheme.bodyMedium!.copyWith(
+                          color: theme.colorScheme.primary.withOpacity(0.7)),
+                      selectedTextStyle: const TextStyle(
+                          color: Colors.black, fontWeight: FontWeight.bold),
+                      todayTextStyle: TextStyle(
+                          color: theme.colorScheme.secondary,
+                          fontWeight: FontWeight.bold),
                       selectedDecoration: BoxDecoration(
                         color: theme.colorScheme.primary,
                         shape: BoxShape.circle,
                       ),
                       todayDecoration: BoxDecoration(
                         color: Colors.transparent,
-                        border: Border.all(color: theme.colorScheme.secondary, width: 2),
-                        shape: BoxShape.circle,
-                      ),
-                       markerDecoration: BoxDecoration(
-                        color: theme.colorScheme.secondary.withOpacity(0.7),
+                        border: Border.all(
+                            color: theme.colorScheme.secondary, width: 2),
                         shape: BoxShape.circle,
                       ),
                     ),
                     eventLoader: (day) {
-                      return model.attendanceRecords.where((record) => isSameDay(record.date, day)).toList();
+                      final recordsForDay = model.attendanceRecords
+                          .where((record) => isSameDay(record.date, day));
+                      return recordsForDay.isNotEmpty ? [1] : [];
                     },
+                    calendarBuilders: CalendarBuilders(
+                      markerBuilder: (context, day, events) {
+                        if (events.isEmpty) return null;
+
+                        final records = model.attendanceRecords
+                            .where((record) => isSameDay(record.date, day))
+                            .toList();
+
+                        if (records.isEmpty) return null;
+
+                        Color markerColor;
+                        if (records.any(
+                            (r) => r.status == AttendanceStatus.absent)) {
+                          markerColor = theme.colorScheme.error;
+                        } else if (records.any(
+                            (r) => r.status == AttendanceStatus.massBunk)) {
+                          markerColor = Colors.orangeAccent;
+                        } else if (records.any(
+                            (r) => r.status == AttendanceStatus.present)) {
+                          markerColor = theme.colorScheme.secondary;
+                        } else {
+                          markerColor = Colors.grey;
+                        }
+
+                        return Container(
+                          width: 7,
+                          height: 7,
+                          margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: markerColor,
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
@@ -452,11 +515,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final subject = model.subjects[index];
-                    final theoryData = model.attendanceData[subject.name]!['theory']!;
-                    final practicalData = model.attendanceData[subject.name]!['practical']!;
+                    final theoryData =
+                        model.attendanceData[subject.name]!['theory']!;
+                    final practicalData =
+                        model.attendanceData[subject.name]!['practical']!;
                     return Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                      child: _buildSummaryCard(subject, theoryData, practicalData),
+                      child:
+                          _buildSummaryCard(subject, theoryData, practicalData),
                     );
                   },
                   childCount: model.subjects.length,
@@ -474,7 +540,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(icon, color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5), size: 40),
+        Icon(icon,
+            color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
+            size: 40),
         const SizedBox(height: 16),
         Text(
           text,
@@ -486,8 +554,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   Widget _buildClassCard(ClassInfo classInfo, AttendanceStatus? status) {
     final theme = Theme.of(context);
-    final cardColor = classInfo.isTheory ? AppTheme.accentBlue : theme.colorScheme.secondary;
-    
+    final cardColor =
+        classInfo.isTheory ? AppTheme.accentBlue : theme.colorScheme.secondary;
+
     return GestureDetector(
       onTap: () => _showAttendanceDialog(classInfo),
       child: Container(
@@ -513,7 +582,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 children: [
                   Text(
                     classInfo.subject.name,
-                    style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+                    style: theme.textTheme.bodyLarge
+                        ?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -566,24 +636,27 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       color: AppTheme.accentBlue,
                     ),
                   ),
-                if (subject.hasPractical && practicalData.totalScheduledHours > 0)
+                if (subject.hasPractical &&
+                    practicalData.totalScheduledHours > 0)
                   Expanded(
                     child: _buildRadialGauge(
                       title: 'Practical',
                       data: practicalData,
-                      color: theme.colorScheme.secondary, 
+                      color: theme.colorScheme.secondary,
                     ),
                   ),
               ],
             ),
             if (theoryData.totalScheduledHours == 0 &&
-                (!subject.hasPractical || practicalData.totalScheduledHours == 0))
+                (!subject.hasPractical ||
+                    practicalData.totalScheduledHours == 0))
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 24.0),
                 child: Center(
                   child: Text(
                     'No attendance data yet',
-                    style: theme.textTheme.bodyMedium?.copyWith(fontStyle: FontStyle.italic),
+                    style: theme.textTheme.bodyMedium
+                        ?.copyWith(fontStyle: FontStyle.italic),
                   ),
                 ),
               ),
@@ -610,9 +683,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           percent: percentage.isNaN ? 0 : percentage.clamp(0.0, 1.0),
           center: Text(
             "${data.percentage.toStringAsFixed(1)}%",
-            style: theme.textTheme.titleLarge?.copyWith(
-              color: _getPercentageColor(data.percentage)
-            ),
+            style: theme.textTheme.titleLarge
+                ?.copyWith(color: _getPercentageColor(data.percentage)),
           ),
           circularStrokeCap: CircularStrokeCap.round,
           progressColor: _getPercentageColor(data.percentage),
@@ -632,12 +704,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         if (data.hoursCanMiss > 0)
           Text(
             'Can miss: ${data.hoursCanMiss.toStringAsFixed(1)}h',
-            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.secondary),
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: theme.colorScheme.secondary),
           )
         else
           Text(
             'Cannot miss more',
-            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.error),
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: theme.colorScheme.error),
           ),
       ],
     );
