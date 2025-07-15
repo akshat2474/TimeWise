@@ -69,9 +69,10 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
   }
 
   void _showTimetableOptions() {
+    final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.grey[900],
+      backgroundColor: theme.colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -81,13 +82,9 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Timetable Options',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
+              style: theme.textTheme.titleLarge?.copyWith(fontSize: 18),
             ),
             const SizedBox(height: 24),
             _buildOptionTile(
@@ -121,28 +118,23 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: Colors.blue.withOpacity(0.1),
+          color: theme.colorScheme.primary.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(icon, color: Colors.blue[300], size: 22),
+        child: Icon(icon, color: theme.colorScheme.primary, size: 22),
       ),
       title: Text(
         title,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w500,
-        ),
+        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
       ),
       subtitle: Text(
         subtitle,
-        style: TextStyle(
-          color: Colors.grey[400],
-          fontSize: 12,
-        ),
+        style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12),
       ),
       onTap: onTap,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -151,45 +143,42 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
 
   void _showCopyDayDialog() {
     final model = context.read<TimetableModel>();
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
-        title: const Text(
-          'Copy Day Schedule',
-          style: TextStyle(color: Colors.white),
-        ),
+        backgroundColor: theme.colorScheme.surface,
+        title: Text('Copy Day Schedule', style: theme.textTheme.titleLarge),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               'Copy $_selectedDay\'s schedule to:',
-              style: TextStyle(color: Colors.grey[300]),
+              style: theme.textTheme.bodyLarge,
             ),
             const SizedBox(height: 16),
-            ...model.days.where((day) => day != _selectedDay).map((day) =>
-                ListTile(
-                  title: Text(day, style: const TextStyle(color: Colors.white)),
-                  onTap: () {
-                    model.copyDaySchedule(_selectedDay, day);
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Copied $_selectedDay schedule to $day.'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  },
-                )),
+            ...model.days
+                .where((day) => day != _selectedDay)
+                .map((day) => ListTile(
+                      title: Text(day, style: theme.textTheme.bodyLarge),
+                      onTap: () {
+                        model.copyDaySchedule(_selectedDay, day);
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content:
+                                Text('Copied $_selectedDay schedule to $day.'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      },
+                    )),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: Colors.grey[400]),
-            ),
+            child: const Text('Cancel'),
           ),
         ],
       ),
@@ -197,25 +186,20 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
   }
 
   void _clearDay() {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
-        title: const Text(
-          'Clear Day',
-          style: TextStyle(color: Colors.white),
-        ),
+        backgroundColor: theme.colorScheme.surface,
+        title: Text('Clear Day', style: theme.textTheme.titleLarge),
         content: Text(
           'Are you sure you want to clear all classes from $_selectedDay?',
-          style: TextStyle(color: Colors.grey[300]),
+          style: theme.textTheme.bodyLarge,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: Colors.grey[400]),
-            ),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
@@ -223,16 +207,13 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
               model.clearDaySchedule(_selectedDay);
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Cleared $_selectedDay\'s schedule.'),
+                const SnackBar(
+                  content: Text('Cleared schedule.'),
                   backgroundColor: Colors.orange,
                 ),
               );
             },
-            child: const Text(
-              'Clear',
-              style: TextStyle(color: Colors.red),
-            ),
+            child: Text('Clear', style: TextStyle(color: theme.colorScheme.error)),
           ),
         ],
       ),
@@ -241,22 +222,22 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Consumer<TimetableModel>(
       builder: (context, model, child) {
         return Scaffold(
-          backgroundColor: Colors.black,
+          backgroundColor: theme.scaffoldBackgroundColor,
           appBar: AppBar(
-            title: const Text(
+            title: Text(
               'Create Timetable',
-              style: TextStyle(
-                color: Colors.white,
+              style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w300,
                 letterSpacing: 1,
               ),
             ),
-            backgroundColor: Colors.black,
+            backgroundColor: theme.scaffoldBackgroundColor,
             elevation: 0,
-            iconTheme: const IconThemeData(color: Colors.white),
+            iconTheme: IconThemeData(color: theme.colorScheme.onBackground),
             actions: [
               IconButton(
                 onPressed: _showTimetableOptions,
@@ -273,8 +254,8 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                 child: ElevatedButton(
                   onPressed: _proceedToAttendance,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -298,7 +279,7 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                   margin: const EdgeInsets.all(16),
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: Colors.grey[900],
+                    color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(25),
                   ),
                   child: Row(
@@ -317,7 +298,7 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? Colors.white
+                                  ? theme.colorScheme.primary
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(20),
                             ),
@@ -326,8 +307,8 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: isSelected
-                                    ? Colors.black
-                                    : Colors.grey[400],
+                                    ? theme.colorScheme.onPrimary
+                                    : theme.textTheme.bodyMedium?.color,
                                 fontWeight: FontWeight.w500,
                                 fontSize: 13,
                               ),
@@ -342,10 +323,10 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                   margin: const EdgeInsets.symmetric(horizontal: 16),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.grey[900]?.withOpacity(0.5),
+                    color: theme.colorScheme.surfaceVariant.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: Colors.grey[800]!,
+                      color: theme.colorScheme.surfaceVariant,
                       width: 1,
                     ),
                   ),
@@ -353,18 +334,14 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                     children: [
                       Icon(
                         Icons.info_outline,
-                        color: Colors.blue[300],
+                        color: theme.colorScheme.secondary,
                         size: 16,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           'Tap time slots to add classes for $_selectedDay.',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey[300],
-                            fontWeight: FontWeight.w300,
-                          ),
+                          style: theme.textTheme.bodyMedium,
                         ),
                       ),
                     ],
@@ -377,10 +354,8 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                     itemCount: model.timeSlots.length,
                     itemBuilder: (context, index) {
                       final timeSlot = model.timeSlots[index];
-                      final classInfo =
-                          model.timetable[_selectedDay]![timeSlot];
-                      final isBlocked =
-                          model.isSlotBlocked(_selectedDay, timeSlot);
+                      final classInfo = model.timetable[_selectedDay]![timeSlot];
+                      final isBlocked = model.isSlotBlocked(_selectedDay, timeSlot);
                       final isBlockedSlot = classInfo?.isBlockedSlot == true;
 
                       return Padding(
@@ -393,20 +368,18 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                             duration: const Duration(milliseconds: 300),
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              gradient: _getCardGradient(
-                                  classInfo, isBlocked, isBlockedSlot),
+                              gradient: _getCardGradient(classInfo, isBlocked, isBlockedSlot),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: _getBorderColor(
-                                    classInfo, isBlocked, isBlockedSlot),
+                                color: _getBorderColor(classInfo, isBlocked, isBlockedSlot),
                                 width: 1.5,
                               ),
                               boxShadow: classInfo != null && !isBlockedSlot
                                   ? [
                                       BoxShadow(
                                         color: (classInfo.isTheory
-                                                ? Colors.blue
-                                                : Colors.green)
+                                                ? theme.colorScheme.primary
+                                                : theme.colorScheme.secondary)
                                             .withOpacity(0.2),
                                         blurRadius: 8,
                                         spreadRadius: 1,
@@ -419,28 +392,18 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                                 SizedBox(
                                   width: 70,
                                   child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
                                         timeSlot.split('-')[0],
-                                        style: TextStyle(
-                                          color: isBlockedSlot
-                                              ? Colors.grey[600]
-                                              : Colors.grey[300],
-                                          fontSize: 14,
+                                        style: theme.textTheme.bodyLarge?.copyWith(
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
                                       Text(
                                         timeSlot.split('-')[1],
-                                        style: TextStyle(
-                                          color: isBlockedSlot
-                                              ? Colors.grey[700]
-                                              : Colors.grey[500],
-                                          fontSize: 11,
-                                        ),
+                                        style: theme.textTheme.bodySmall,
                                       ),
                                     ],
                                   ),
@@ -451,8 +414,8 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                                   height: 40,
                                   decoration: BoxDecoration(
                                     color: isBlockedSlot
-                                        ? Colors.grey[700]
-                                        : Colors.grey[600],
+                                        ? theme.dividerColor.withOpacity(0.5)
+                                        : theme.dividerColor,
                                     borderRadius: BorderRadius.circular(1),
                                   ),
                                 ),
@@ -477,18 +440,18 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
   }
 
   Widget _buildClassInfoContent(ClassInfo? classInfo, bool isBlockedSlot) {
+    final theme = Theme.of(context);
     if (isBlockedSlot) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.block, color: Colors.grey[600], size: 18),
+          Icon(Icons.block, color: theme.disabledColor, size: 18),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               'Blocked by ${classInfo!.subject.name}',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 14,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.disabledColor,
                 fontStyle: FontStyle.italic,
               ),
               overflow: TextOverflow.ellipsis,
@@ -506,11 +469,7 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
               children: [
                 Text(
                   classInfo.subject.name,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: theme.textTheme.titleMedium,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
@@ -518,10 +477,11 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                   children: [
                     _buildTag(
                       classInfo.isTheory ? 'Theory' : 'Practical',
-                      classInfo.isTheory ? Colors.blue[600]! : Colors.green[600]!,
+                      classInfo.isTheory ? theme.colorScheme.primary : theme.colorScheme.secondary,
                     ),
                     const SizedBox(width: 6),
-                    _buildTag('${classInfo.duration}h', Colors.grey[700]!),
+                    _buildTag(
+                        '${classInfo.duration}h', theme.colorScheme.surfaceVariant),
                   ],
                 ),
               ],
@@ -530,12 +490,12 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: theme.colorScheme.onSurface.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
               Icons.edit_outlined,
-              color: Colors.white.withOpacity(0.8),
+              color: theme.colorScheme.onSurface.withOpacity(0.8),
               size: 16,
             ),
           ),
@@ -548,17 +508,15 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: Colors.grey[700],
+              color: theme.colorScheme.surfaceVariant,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(Icons.add, color: Colors.grey[400], size: 16),
+            child: Icon(Icons.add, color: theme.textTheme.bodyMedium?.color, size: 16),
           ),
           const SizedBox(width: 8),
           Text(
             'Add Class',
-            style: TextStyle(
-              color: Colors.grey[400],
-              fontSize: 14,
+            style: theme.textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -576,27 +534,23 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
       ),
       child: Text(
         text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-        ),
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white),
       ),
     );
   }
 
-  LinearGradient _getCardGradient(
-      ClassInfo? classInfo, bool isBlocked, bool isBlockedSlot) {
-    Color startColor = Colors.grey[900]!;
-    Color endColor = Colors.grey[800]!;
+  LinearGradient _getCardGradient(ClassInfo? classInfo, bool isBlocked, bool isBlockedSlot) {
+    final theme = Theme.of(context);
+    Color startColor = theme.colorScheme.surface;
+    Color endColor = theme.colorScheme.surfaceVariant;
 
     if (!isBlockedSlot && classInfo != null) {
       if (classInfo.isTheory) {
-        startColor = Colors.blue[900]!;
-        endColor = Colors.blue[800]!;
+        startColor = theme.colorScheme.primary.withOpacity(0.3);
+        endColor = theme.colorScheme.primary.withOpacity(0.2);
       } else {
-        startColor = Colors.green[900]!;
-        endColor = Colors.green[800]!;
+        startColor = theme.colorScheme.secondary.withOpacity(0.3);
+        endColor = theme.colorScheme.secondary.withOpacity(0.2);
       }
     }
 
@@ -607,14 +561,14 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
     );
   }
 
-  Color _getBorderColor(
-      ClassInfo? classInfo, bool isBlocked, bool isBlockedSlot) {
+  Color _getBorderColor(ClassInfo? classInfo, bool isBlocked, bool isBlockedSlot) {
+    final theme = Theme.of(context);
     if (isBlockedSlot) {
-      return Colors.grey[700]!;
+      return theme.dividerColor;
     } else if (classInfo != null) {
-      return classInfo.isTheory ? Colors.blue[600]! : Colors.green[600]!;
+      return classInfo.isTheory ? theme.colorScheme.primary : theme.colorScheme.secondary;
     } else {
-      return Colors.grey[600]!;
+      return theme.colorScheme.surfaceVariant;
     }
   }
 }
@@ -681,8 +635,9 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return AlertDialog(
-      backgroundColor: Colors.grey[900],
+      backgroundColor: theme.colorScheme.surface.withOpacity(0.95),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
@@ -691,7 +646,7 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.blue[600],
+              color: theme.colorScheme.primary,
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(
@@ -701,13 +656,9 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
             ),
           ),
           const SizedBox(width: 12),
-          const Text(
+          Text(
             'Configure Class',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
+            style: theme.textTheme.titleLarge?.copyWith(fontSize: 18),
           ),
         ],
       ),
@@ -719,46 +670,38 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.grey[800],
+                color: theme.colorScheme.surfaceVariant,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
                   Icon(
                     Icons.access_time,
-                    color: Colors.grey[400],
+                    color: theme.textTheme.bodyMedium?.color,
                     size: 16,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'Time: ${widget.timeSlot}',
-                    style: TextStyle(
-                      color: Colors.grey[300],
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'Subject:',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
+              style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, fontSize: 14),
             ),
             const SizedBox(height: 8),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
-                color: Colors.grey[800],
+                color: theme.colorScheme.surfaceVariant,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Colors.grey[600]!,
+                  color: theme.dividerColor,
                   width: 1,
                 ),
               ),
@@ -766,11 +709,11 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
                 child: DropdownButton<Subject>(
                   value: _selectedSubject,
                   isExpanded: true,
-                  dropdownColor: Colors.grey[800],
-                  style: const TextStyle(color: Colors.white),
-                  hint: const Text(
+                  dropdownColor: theme.colorScheme.surfaceVariant,
+                  style: theme.textTheme.bodyLarge,
+                  hint: Text(
                     'Select Subject',
-                    style: TextStyle(color: Colors.grey),
+                    style: theme.textTheme.bodyLarge?.copyWith(color: theme.hintColor),
                   ),
                   items: widget.subjects.map((subject) {
                     return DropdownMenuItem<Subject>(
@@ -791,31 +734,27 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'Class Type:',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
+              style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, fontSize: 14),
             ),
             const SizedBox(height: 8),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
-                color: Colors.grey[800],
+                color: theme.colorScheme.surfaceVariant,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Colors.grey[600]!,
+                  color: theme.dividerColor,
                   width: 1,
                 ),
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<ClassType>(
                   value: _selectedType,
-                  dropdownColor: Colors.grey[800],
-                  style: const TextStyle(color: Colors.white),
+                  dropdownColor: theme.colorScheme.surfaceVariant,
+                  style: theme.textTheme.bodyLarge,
                   items: _getClassTypeItems(),
                   onChanged: (value) {
                     setState(() {
@@ -826,13 +765,9 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'Duration:',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
+              style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, fontSize: 14),
             ),
             const SizedBox(height: 8),
             Row(
@@ -847,26 +782,17 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        color: _selectedDuration == 1
-                            ? Colors.white
-                            : Colors.grey[800],
+                        color: _selectedDuration == 1 ? theme.colorScheme.primary : theme.colorScheme.surfaceVariant,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: _selectedDuration == 1
-                              ? Colors.white
-                              : Colors.grey[600]!,
+                          color: _selectedDuration == 1 ? theme.colorScheme.primary : theme.dividerColor,
                           width: 1.5,
                         ),
                       ),
                       child: Text(
                         '1 Hour',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: _selectedDuration == 1
-                              ? Colors.black
-                              : Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
                       ),
                     ),
                   ),
@@ -885,30 +811,24 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
                         color: _canSelect2Hours()
-                            ? (_selectedDuration == 2
-                                ? Colors.white
-                                : Colors.grey[800])
-                            : Colors.grey[850],
+                            ? (_selectedDuration == 2 ? theme.colorScheme.primary : theme.colorScheme.surfaceVariant)
+                            : theme.disabledColor,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: _canSelect2Hours()
-                              ? (_selectedDuration == 2
-                                  ? Colors.white
-                                  : Colors.grey[600]!)
-                              : Colors.grey[700]!,
+                              ? (_selectedDuration == 2 ? theme.colorScheme.primary : theme.dividerColor)
+                              : theme.disabledColor,
                           width: 1.5,
                         ),
                       ),
                       child: Text(
                         '2 Hours',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: _canSelect2Hours()
-                              ? (_selectedDuration == 2
-                                  ? Colors.black
-                                  : Colors.white)
-                              : Colors.grey[600],
+                        style: theme.textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.w600,
+                          color: !_canSelect2Hours()
+                              ? theme.textTheme.bodyLarge?.color?.withOpacity(0.5)
+                              : theme.textTheme.bodyLarge?.color,
                         ),
                       ),
                     ),
@@ -921,9 +841,8 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   '2-hour option not available for last time slot.',
-                  style: TextStyle(
+                  style: theme.textTheme.bodySmall?.copyWith(
                     color: Colors.orange[300],
-                    fontSize: 12,
                     fontStyle: FontStyle.italic,
                   ),
                 ),
@@ -948,13 +867,7 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
           onPressed: () {
             Navigator.of(context).pop();
           },
-          child: Text(
-            'Cancel',
-            style: TextStyle(
-              color: Colors.grey[400],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          child: const Text('Cancel'),
         ),
         ElevatedButton(
           onPressed: _selectedSubject != null
@@ -967,20 +880,7 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
                   Navigator.of(context).pop();
                 }
               : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.white,
-            foregroundColor: Colors.black,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          ),
-          child: const Text(
-            'Save',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          child: const Text('Save'),
         ),
       ],
     );

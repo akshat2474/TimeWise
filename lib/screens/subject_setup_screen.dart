@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:timewise_dtu/theme/app_theme.dart';
 import 'timetable_grid_screen.dart';
 import '../models/subject_model.dart';
 import '../models/timetable_model.dart';
@@ -75,6 +76,7 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
   }
 
   void _showAddSubjectDialog([int? index]) {
+    final theme = Theme.of(context);
     final nameController = TextEditingController();
     CreditType creditType = CreditType.fourCredit;
     SubjectType subjectType = SubjectType.theory;
@@ -441,6 +443,7 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
   }
 
   void _showDeleteConfirmation(int index) {
+    final theme = Theme.of(context);
     final subject = _subjects[index];
     showDialog(
       context: context,
@@ -541,20 +544,20 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           widget.isEditing ? 'Edit Subjects' : 'Setup Subjects',
-          style: const TextStyle(
-            color: Colors.white,
+          style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w300,
             letterSpacing: 1,
           ),
         ),
-        backgroundColor: Colors.black,
+        backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: theme.colorScheme.onBackground),
       ),
       body: SafeArea(
         child: Padding(
@@ -567,10 +570,9 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                   widget.isEditing
                       ? 'Edit Your Subjects'
                       : 'Configure Your Subjects',
-                  style: const TextStyle(
+                  style: theme.textTheme.headlineSmall?.copyWith(
                     fontSize: 28,
                     fontWeight: FontWeight.w400,
-                    color: Colors.white,
                     letterSpacing: 1,
                   ),
                 ),
@@ -579,7 +581,7 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                   widget.isEditing
                       ? 'Modify your subjects and credit information. Existing timetable and attendance data will be preserved.'
                       : 'Set up your subjects with credit and practical information.',
-                  style: TextStyle(
+                  style: theme.textTheme.bodyLarge?.copyWith(
                     fontSize: 16,
                     color: Colors.grey[400],
                     fontWeight: FontWeight.w300,
@@ -599,14 +601,14 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
   }
 
   Widget _buildSubjectCountInput() {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'How many subjects do you have?',
-          style: TextStyle(
+          style: theme.textTheme.titleMedium?.copyWith(
             fontSize: 18,
-            color: Colors.white,
             fontWeight: FontWeight.w400,
           ),
         ),
@@ -621,26 +623,11 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                   FilteringTextInputFormatter.digitsOnly,
                   LengthLimitingTextInputFormatter(2),
                 ],
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                ),
+                style: theme.textTheme.bodyLarge?.copyWith(fontSize: 16),
                 decoration: InputDecoration(
                   hintText: 'Enter number of subjects (1-15)',
-                  hintStyle: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey[900],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
+                  hintStyle: theme.textTheme.bodyMedium
+                      ?.copyWith(color: Colors.grey[600], fontSize: 14),
                 ),
                 onSubmitted: (_) => _onSubjectCountSubmitted(),
               ),
@@ -649,19 +636,14 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
             ElevatedButton(
               onPressed: _onSubjectCountSubmitted,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
                   vertical: 16,
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
               ),
-              child: const Text(
+              child: Text(
                 'Next',
-                style: TextStyle(
+                style: theme.textTheme.labelLarge?.copyWith(
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.5,
                 ),
@@ -674,6 +656,7 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
   }
 
   Widget _buildSubjectList() {
+    final theme = Theme.of(context);
     return Column(
       children: [
         Row(
@@ -681,9 +664,8 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
           children: [
             Text(
               'Subjects (${_subjects.length}/$_subjectCount)',
-              style: const TextStyle(
+              style: theme.textTheme.titleMedium?.copyWith(
                 fontSize: 18,
-                color: Colors.white,
                 fontWeight: FontWeight.w400,
               ),
             ),
@@ -693,7 +675,8 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                   onPressed: _resetSubjectCount,
                   icon: const Icon(Icons.edit, size: 16),
                   label: const Text('Edit Count'),
-                  style: TextButton.styleFrom(foregroundColor: Colors.grey[400]),
+                  style: TextButton.styleFrom(
+                      foregroundColor: theme.textTheme.bodyMedium?.color),
                 ),
                 if (_subjects.length < _subjectCount)
                   ElevatedButton.icon(
@@ -701,8 +684,6 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                     icon: const Icon(Icons.add, size: 18),
                     label: const Text('Add'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
@@ -726,10 +707,10 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.grey[900],
+                    color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: Colors.grey[700]!,
+                      color: theme.colorScheme.surfaceVariant,
                       width: 1,
                     ),
                   ),
@@ -741,8 +722,7 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                           children: [
                             Text(
                               subject.name,
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: theme.textTheme.titleMedium?.copyWith(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -750,7 +730,7 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                             const SizedBox(height: 4),
                             Text(
                               subject.creditDescription,
-                              style: TextStyle(
+                              style: theme.textTheme.bodyMedium?.copyWith(
                                 color: Colors.grey[400],
                                 fontSize: 12,
                               ),
@@ -758,30 +738,31 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                             const SizedBox(height: 4),
                             Row(
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.book,
-                                  color: Colors.blue[400],
+                                  color: AppTheme.accentBlue,
                                   size: 14,
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
                                   'Theory: ${subject.totalTheoryHours}h',
-                                  style: TextStyle(
+                                  style: theme.textTheme.bodySmall?.copyWith(
                                     color: Colors.grey[400],
                                     fontSize: 11,
                                   ),
                                 ),
                                 if (subject.hasPractical) ...[
                                   const SizedBox(width: 12),
-                                  Icon(
+                                  const Icon(
                                     Icons.science,
-                                    color: Colors.green[400],
+                                    color: AppTheme.secondary,
                                     size: 14,
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
                                     'Practical: ${subject.totalPracticalHours}h',
-                                    style: TextStyle(
+                                    style:
+                                        theme.textTheme.bodySmall?.copyWith(
                                       color: Colors.grey[400],
                                       fontSize: 11,
                                     ),
@@ -823,19 +804,11 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                 ? _proceedToTimetable
                 : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.black,
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              disabledBackgroundColor: Colors.grey[800],
             ),
             child: Text(
-              widget.isEditing
-                  ? 'Update Subjects'
-                  : 'Create Timetable',
-              style: const TextStyle(
+              widget.isEditing ? 'Update Subjects' : 'Create Timetable',
+              style: theme.textTheme.labelLarge?.copyWith(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
                 letterSpacing: 0.5,
