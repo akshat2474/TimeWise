@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:math' as math;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:timewise_dtu/theme/app_theme.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -12,78 +13,33 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
-  late AnimationController _fadeController;
-  late AnimationController _slideController;
-  late AnimationController _loadingController;
-  late AnimationController _backgroundController;
-  late AnimationController _glowController;
-
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _slideAnimation;
-  late Animation<double> _loadingAnimation;
-  late Animation<double> _backgroundAnimation;
-  late Animation<double> _glowAnimation;
-
-  bool _showContent = false;
+  late AnimationController _controller;
+  late Animation<double> _textFadeInAnimation;
+  late Animation<double> _footerSlideUpAnimation;
 
   @override
   void initState() {
     super.initState();
-    _initializeAnimations();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 3500),
+      vsync: this,
+    );
+
+    _textFadeInAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.1, 0.7, curve: Curves.easeOut),
+      ),
+    );
+
+    _footerSlideUpAnimation = Tween<double>(begin: 50.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.4, 0.9, curve: Curves.easeOutCubic),
+      ),
+    );
+
     _startSequence();
-  }
-
-  void _initializeAnimations() {
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 1400),
-      vsync: this,
-    );
-    _slideController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    );
-    _loadingController = AnimationController(
-      duration: const Duration(milliseconds: 2500),
-      vsync: this,
-    );
-    _backgroundController = AnimationController(
-      duration: const Duration(milliseconds: 8000),
-      vsync: this,
-    );
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2500),
-      vsync: this,
-    );
-
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeInOut,
-    ));
-
-    _slideAnimation = Tween<double>(
-      begin: 40.0,
-      end: 0.0,
-    ).animate(CurvedAnimation(
-      parent: _slideController,
-      curve: Curves.easeOutExpo,
-    ));
-
-    _loadingAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _loadingController,
-      curve: Curves.easeInOut,
-    ));
-    _backgroundAnimation =
-        Tween<double>(begin: 0.0, end: 1.0).animate(_backgroundController);
-    _glowAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
-      parent: _glowController,
-      curve: Curves.easeInOut,
-    ));
   }
 
   void _startSequence() async {
@@ -93,18 +49,9 @@ class _SplashScreenState extends State<SplashScreen>
         statusBarIconBrightness: Brightness.light,
       ),
     );
-    _backgroundController.repeat();
-    _glowController.repeat(reverse: true);
-    await Future.delayed(const Duration(milliseconds: 400));
-    _fadeController.forward();
-    _slideController.forward();
-    await Future.delayed(const Duration(milliseconds: 700));
-    _loadingController.forward();
-    setState(() {
-      _showContent = true;
-    });
+    _controller.forward();
 
-    await Future.delayed(const Duration(milliseconds: 3200));
+    await Future.delayed(const Duration(milliseconds: 4000));
     if (mounted) {
       _navigateToHome();
     }
@@ -115,19 +62,11 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _launchURL(String urlString) async {
-    try {
-      final Uri url = Uri.parse(urlString);
-      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-        throw 'Could not launch $urlString';
-      }
-    } catch (e) {
+    final Uri url = Uri.parse(urlString);
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-                'Could not open link. Please check your internet connection.'),
-            backgroundColor: Colors.red,
-          ),
+          const SnackBar(content: Text('Could not open link.')),
         );
       }
     }
@@ -135,199 +74,132 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
-    _fadeController.dispose();
-    _slideController.dispose();
-    _loadingController.dispose();
-    _backgroundController.dispose();
-    _glowController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF0A0A0A),
-              Color(0xFF000000),
-            ],
-          ),
-        ),
-        child: Stack(
-          children: [
-            AnimatedBuilder(
-              animation: _backgroundController,
-              builder: (context, child) {
-                return CustomPaint(
-                  size: MediaQuery.of(context).size,
-                  painter: StarfieldPainter(_backgroundAnimation.value),
-                );
-              },
+      backgroundColor: AppTheme.background,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) => CustomPaint(
+                painter: CombinedBackgroundPainter(progress: _controller.value),
+              ),
             ),
-            SafeArea(
+          ),
+          SafeArea(
+            child: Center(
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Expanded(
-                    child: _buildMainContent(),
-                  ),
+                  const Spacer(flex: 3),
+                  _buildTitle(),
+                  const Spacer(flex: 2),
+                  _buildLoadingIndicator(),
+                  const Spacer(flex: 2),
                   _buildFooter(),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildMainContent() {
-    return AnimatedBuilder(
-        animation: Listenable.merge([_slideController, _fadeController]),
-        builder: (context, child) {
-          return Transform.translate(
-            offset: Offset(0, _slideAnimation.value),
-            child: Opacity(
-              opacity: _fadeAnimation.value,
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Spacer(flex: 3),
-                    AnimatedBuilder(
-                      animation: _glowController,
-                      builder: (context, child) {
-                        final glowIntensity = 0.3 + _glowAnimation.value * 0.2;
-                        return Text(
-                          'TimeWise',
-                          style: TextStyle(
-                            fontSize: 76,
-                            fontWeight: FontWeight.w300,
-                            color: Colors.white,
-                            letterSpacing: 2,
-                            height: 1,
-                            shadows: [
-                              Shadow(
-                                color: Colors.blue
-                                    .withOpacity(glowIntensity * 0.3),
-                                blurRadius: 20,
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Smart Attendance Tracker',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey[300],
-                        fontWeight: FontWeight.w300,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                    const Spacer(flex: 2),
-                    if (_showContent) _buildLoadingVisual(),
-                  ],
-                ),
-              ),
-            ),
-          );
-        });
+  Widget _buildTitle() {
+    return FadeTransition(
+      opacity: _textFadeInAnimation,
+      child: const AnimatedAppName(),
+    );
   }
 
-  Widget _buildLoadingVisual() {
-    return AnimatedBuilder(
-      animation: _loadingController,
-      builder: (context, child) {
-        return SizedBox(
-          width: 200,
-          height: 50,
-          child: CustomPaint(
-            painter: SmoothLoadingBarWithRunnerPainter(_loadingAnimation.value),
+  Widget _buildLoadingIndicator() {
+    return FadeTransition(
+      opacity: _textFadeInAnimation,
+      child: SizedBox(
+        width: 220,
+        height: 4,
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) => CustomPaint(
+            painter: ShimmerLoadingBarPainter(
+              progress: _controller.value,
+              shimmerColor: AppTheme.primary,
+              backgroundColor: AppTheme.surfaceVariant.withOpacity(0.5),
+            ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
   Widget _buildFooter() {
     return AnimatedBuilder(
-      animation: _fadeController,
+      animation: _controller,
       builder: (context, child) {
-        return Opacity(
-          opacity: _fadeAnimation.value * 0.85,
-          child: Padding(
-            padding: const EdgeInsets.all(28.0),
-            child: Column(
-              children: [
-                Text(
-                  'Made by Akshat Singh',
-                  style: TextStyle(
-                    color: Colors.grey[300],
-                    fontSize: 17,
-                    fontWeight: FontWeight.w400,
-                    letterSpacing: 1.0,
-                  ),
-                ),
-                const SizedBox(height: 22),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildEnhancedSocialLink(
-                      Icons.code_rounded,
-                      'GitHub',
-                      'https://github.com/akshat2474',
-                    ),
-                    const SizedBox(width: 28),
-                    _buildEnhancedSocialLink(
-                      Icons.work_rounded,
-                      'LinkedIn',
-                      'https://www.linkedin.com/in/akshat-singh-48a03b312/',
-                    ),
-                  ],
-                ),
-              ],
+        return Transform.translate(
+          offset: Offset(0, _footerSlideUpAnimation.value),
+          child: FadeTransition(
+            opacity: CurvedAnimation(
+              parent: _controller,
+              curve: const Interval(0.6, 1.0),
             ),
+            child: child,
           ),
         );
       },
+      child: Column(
+        children: [
+          Text(
+            'Made by Akshat Singh',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppTheme.textTertiary,
+                ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildSocialLink(
+                icon: const Icon(Icons.code_rounded, size: 20, color: AppTheme.textSecondary),
+                label: 'GitHub',
+                url: 'https://github.com/akshat2474',
+              ),
+              const SizedBox(width: 24),
+              _buildSocialLink(
+                icon: const Icon(Icons.work_outline_rounded, size: 20, color: AppTheme.textSecondary),
+                label: 'LinkedIn',
+                url: 'https://www.linkedin.com/in/akshat-singh-48a03b312/',
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildEnhancedSocialLink(IconData icon, String label, String url) {
-    return GestureDetector(
+  Widget _buildSocialLink({required Widget icon, required String label, required String url}) {
+    return InkWell(
       onTap: () => _launchURL(url),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: Colors.white.withOpacity(0.25),
-            width: 1.2,
-          ),
-          borderRadius: BorderRadius.circular(22),
-        ),
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              color: Colors.grey[300],
-              size: 15,
-            ),
+            icon,
             const SizedBox(width: 8),
             Text(
               label,
-              style: TextStyle(
-                color: Colors.grey[300],
-                fontSize: 13,
-                fontWeight: FontWeight.w400,
-                letterSpacing: 0.6,
-              ),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppTheme.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
             ),
           ],
         ),
@@ -335,162 +207,127 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 }
-
-class StarfieldPainter extends CustomPainter {
-  final double progress;
-  final int starCount = 200;
-  final math.Random random = math.Random(1337);
-
-  StarfieldPainter(this.progress);
+class AnimatedAppName extends StatefulWidget {
+  const AnimatedAppName({super.key});
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.fill;
-
-    for (int i = 0; i < starCount; i++) {
-      final starRandom = math.Random(i);
-      final depth = starRandom.nextDouble();
-
-      final opacity = (0.2 + (depth * 0.8)).clamp(0.2, 1.0);
-      final starSize = 0.5 + (depth * 1.5);
-
-      final initialX = starRandom.nextDouble() * size.width;
-      final initialY = starRandom.nextDouble() * size.height;
-
-      final y = (initialY + (progress * 100 * depth)) % size.height;
-
-      paint.color = Colors.white.withOpacity(opacity * 0.5);
-      canvas.drawCircle(Offset(initialX, y), starSize, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant StarfieldPainter oldDelegate) =>
-      progress != oldDelegate.progress;
+  State<AnimatedAppName> createState() => _AnimatedAppNameState();
 }
 
-class SmoothLoadingBarWithRunnerPainter extends CustomPainter {
-  final double progress;
+class _AnimatedAppNameState extends State<AnimatedAppName> with SingleTickerProviderStateMixin {
+  late AnimationController _charController;
 
-  SmoothLoadingBarWithRunnerPainter(this.progress);
+  @override
+  void initState() {
+    super.initState();
+    _charController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+    _charController.forward();
+  }
+
+  @override
+  void dispose() {
+    _charController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textStyle = Theme.of(context).textTheme.displayMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+          letterSpacing: 3,
+          color: Colors.white,
+          fontSize: 55
+        );
+    const appName = 'TimeWise';
+
+    return AnimatedBuilder(
+      animation: _charController,
+      builder: (context, child) {
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(appName.length, (index) {
+            final delay = index / appName.length;
+            final animation = CurvedAnimation(
+              parent: _charController,
+              curve: Interval(delay * 0.5, math.min(delay * 0.5 + 0.5, 1.0), curve: Curves.easeOut),
+            );
+            return FadeTransition(
+              opacity: animation,
+              child: Text(appName[index], style: textStyle),
+            );
+          }),
+        );
+      },
+    );
+  }
+}
+
+class ShimmerLoadingBarPainter extends CustomPainter {
+  final double progress;
+  final Color shimmerColor;
+  final Color backgroundColor;
+
+  ShimmerLoadingBarPainter({required this.progress, required this.shimmerColor, required this.backgroundColor});
 
   @override
   void paint(Canvas canvas, Size size) {
-    _drawLoadingBarBackground(canvas, size);
-    _drawLoadingBarFill(canvas, size);
-    _drawSmoothRunningMan(canvas, size);
-  }
-
-  void _drawLoadingBarBackground(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withOpacity(0.1)
+    final backgroundPaint = Paint()
+      ..color = backgroundColor
       ..style = PaintingStyle.fill;
-    final rect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(0, size.height - 8, size.width, 6),
-      const Radius.circular(3),
-    );
-    canvas.drawRRect(rect, paint);
-  }
+    canvas.drawRRect(RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(size.height / 2)), backgroundPaint);
+    
+    final shimmerWidth = size.width * 0.4;
+    final shimmerPosition = (size.width + shimmerWidth) * (progress * 2 % 1) - shimmerWidth;
 
-  void _drawLoadingBarFill(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withOpacity(0.8)
-      ..style = PaintingStyle.fill;
-    final fillWidth = size.width * progress;
-    if (fillWidth > 0) {
-      final rect = RRect.fromRectAndRadius(
-        Rect.fromLTWH(0, size.height - 8, fillWidth, 6),
-        const Radius.circular(3),
-      );
-      canvas.drawRRect(rect, paint);
+    final shimmerPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [Colors.transparent, shimmerColor.withOpacity(0.8), Colors.transparent],
+        stops: const [0.0, 0.5, 1.0],
+      ).createShader(Rect.fromLTWH(shimmerPosition, 0, shimmerWidth, size.height));
+    
+    canvas.drawRRect(RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(size.height / 2)), shimmerPaint);
+  }
+  
+  @override
+  bool shouldRepaint(covariant ShimmerLoadingBarPainter oldDelegate) => true;
+}
+
+class CombinedBackgroundPainter extends CustomPainter {
+  final double progress;
+  CombinedBackgroundPainter({required this.progress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final gradientPaint = Paint()
+      ..shader = RadialGradient(
+        center: const Alignment(0.0, -1.2),
+        radius: 1.5,
+        colors: [
+          AppTheme.primary.withOpacity(0.3),
+          AppTheme.background,
+        ],
+        stops: const [0.0, 0.6],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), gradientPaint);
+
+    final dotPaint = Paint()
+      ..color = AppTheme.primary.withOpacity(0.2);
+
+    const gridSize = 40.0;
+    
+    final gridOpacity = math.sin(progress * math.pi);
+    dotPaint.color = dotPaint.color.withOpacity(dotPaint.color.opacity * gridOpacity);
+
+    for (double y = 0; y < size.height; y += gridSize) {
+      for (double x = 0; x < size.width; x += gridSize) {
+        canvas.drawCircle(Offset(x, y), 1.0, dotPaint);
+      }
     }
   }
 
-  void _drawSmoothRunningMan(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withOpacity(0.9)
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
-
-    final runnerX = (size.width - 20) * progress + 10;
-    final runnerY = size.height - 20;
-    final center = Offset(runnerX, runnerY);
-
-    final runTime = progress * 12;
-    final headBob = math.sin(runTime * 2 * math.pi) * 0.5;
-
-    canvas.drawCircle(
-      Offset(center.dx, center.dy - 15 + headBob),
-      3,
-      paint,
-    );
-
-    final bodyLean = math.sin(runTime * 2 * math.pi) * 0.3;
-    canvas.drawLine(
-      Offset(center.dx, center.dy - 12 + headBob),
-      Offset(center.dx + bodyLean, center.dy + 5),
-      paint,
-    );
-
-    _drawSmoothArms(canvas, center, paint, runTime);
-    _drawSmoothLegs(canvas, center, paint, runTime);
-  }
-
-  void _drawSmoothArms(
-      Canvas canvas, Offset center, Paint paint, double runTime) {
-    const armLength = 8.0;
-    final leftArmAngle = math.sin(runTime * 2 * math.pi) * 0.6;
-    final rightArmAngle = math.sin(runTime * 2 * math.pi + math.pi) * 0.6;
-
-    canvas.drawLine(
-      Offset(center.dx, center.dy - 5),
-      Offset(
-        center.dx + armLength * math.sin(leftArmAngle),
-        center.dy - 5 + armLength * math.cos(leftArmAngle),
-      ),
-      paint,
-    );
-
-    canvas.drawLine(
-      Offset(center.dx, center.dy - 5),
-      Offset(
-        center.dx + armLength * math.sin(rightArmAngle),
-        center.dy - 5 + armLength * math.cos(rightArmAngle),
-      ),
-      paint,
-    );
-  }
-
-  void _drawSmoothLegs(
-      Canvas canvas, Offset center, Paint paint, double runTime) {
-    const legLength = 10.0;
-    final leftLegAngle = math.sin(runTime * 2 * math.pi + math.pi) * 0.8;
-    final rightLegAngle = math.sin(runTime * 2 * math.pi) * 0.8;
-
-    final leftLegY =
-        center.dy + 5 + (math.sin(runTime * 2 * math.pi + math.pi)).abs() * 1;
-    final rightLegY =
-        center.dy + 5 + (math.sin(runTime * 2 * math.pi)).abs() * 1;
-
-    canvas.drawLine(
-      Offset(center.dx, center.dy + 5),
-      Offset(
-        center.dx + legLength * math.sin(leftLegAngle),
-        leftLegY + legLength * math.cos(leftLegAngle),
-      ),
-      paint,
-    );
-    canvas.drawLine(
-      Offset(center.dx, center.dy + 5),
-      Offset(
-        center.dx + legLength * math.sin(rightLegAngle),
-        rightLegY + legLength * math.cos(rightLegAngle),
-      ),
-      paint,
-    );
-  }
-
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant CombinedBackgroundPainter oldDelegate) => progress != oldDelegate.progress;
 }
