@@ -73,6 +73,7 @@ class NotificationService {
 
     const NotificationDetails notificationDetails =
         NotificationDetails(android: androidNotificationDetails);
+
     for (int weekday = 1; weekday <= 5; weekday++) {
       try {
         final scheduledDate = _nextInstanceOfSixPM(weekday);
@@ -86,7 +87,7 @@ class NotificationService {
         ][weekday];
 
         await flutterLocalNotificationsPlugin.zonedSchedule(
-          weekday,
+          weekday, 
           'TimeWise Reminder',
           'Don\'t forget to mark your attendance for today!',
           scheduledDate,
@@ -107,24 +108,20 @@ class NotificationService {
 
   tz.TZDateTime _nextInstanceOfSixPM(int targetWeekday) {
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+    tz.TZDateTime scheduledDate =
+        tz.TZDateTime(tz.local, now.year, now.month, now.day, 18); // 6 PM
 
-    tz.TZDateTime scheduledDate = tz.TZDateTime(
-      tz.local,
-      now.year,
-      now.month,
-      now.day,
-      18,
-      0,
-      0,
-    );
-    int daysToAdd = (targetWeekday - now.weekday) % 7;
-    if (daysToAdd == 0 && now.hour >= 18) {
-      daysToAdd = 7;
+    while (scheduledDate.weekday != targetWeekday) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
-    scheduledDate = scheduledDate.add(Duration(days: daysToAdd));
+
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 7));
+    }
 
     return scheduledDate;
   }
+
 
   Future<void> cancelAllNotifications() async {
     await flutterLocalNotificationsPlugin.cancelAll();
@@ -176,19 +173,20 @@ class NotificationService {
     }
   }
 
-  Future<void> testImmediateNotification() async {
+  Future<void> scheduleTestNotification() async {
     final now = tz.TZDateTime.now(tz.local);
-    final testTime = now.add(const Duration(seconds: 10));
+    final testTime = now.add(const Duration(minutes: 1));
 
     await flutterLocalNotificationsPlugin.zonedSchedule(
-      999,
+      999, 
       'Test Notification',
-      'This should appear in 10 seconds',
+      'This should appear in 1 minute.',
       testTime,
       const NotificationDetails(
         android: AndroidNotificationDetails(
           'test_channel',
           'Test Channel',
+          channelDescription: 'Channel for testing notifications',
           importance: Importance.max,
           priority: Priority.high,
         ),
