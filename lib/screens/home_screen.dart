@@ -83,19 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 hasExistingTimetable: hasExistingTimetable,
                 model: model,
               ),
-              const SizedBox(height: 24),
-              if (hasExistingTimetable) ...[
-                const Text(
-                  'Reminders & Tools',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _buildToolsCard(context),
-              ],
+            const SizedBox(height: 24),
             ],
           ),
         ),

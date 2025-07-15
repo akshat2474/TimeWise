@@ -20,8 +20,8 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
     if (model.isSlotBlocked(day, timeSlot)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('This slot is blocked by a 2-hour class'),
-          backgroundColor: Colors.orange,
+          content: Text('This slot is blocked by a 2-hour class.'),
+          backgroundColor: Colors.orangeAccent,
         ),
       );
       return;
@@ -79,6 +79,7 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
               'Timetable Options',
@@ -90,30 +91,22 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
             ),
             const SizedBox(height: 24),
             _buildOptionTile(
-              icon: Icons.copy,
+              icon: Icons.copy_all_outlined,
               title: 'Copy Day',
-              subtitle: 'Copy $_selectedDay schedule to another day',
+              subtitle: 'Copy $_selectedDay\'s schedule to another day',
               onTap: () {
                 Navigator.pop(context);
                 _showCopyDayDialog();
               },
             ),
+            const SizedBox(height: 12),
             _buildOptionTile(
-              icon: Icons.clear_all,
+              icon: Icons.delete_sweep_outlined,
               title: 'Clear Day',
               subtitle: 'Remove all classes from $_selectedDay',
               onTap: () {
                 Navigator.pop(context);
                 _clearDay();
-              },
-            ),
-            _buildOptionTile(
-              icon: Icons.import_export,
-              title: 'Import/Export',
-              subtitle: 'Share or backup your timetable',
-              onTap: () {
-                Navigator.pop(context);
-                _showImportExportDialog();
               },
             ),
           ],
@@ -130,12 +123,12 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
   }) {
     return ListTile(
       leading: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: Colors.blue[600],
-          borderRadius: BorderRadius.circular(8),
+          color: Colors.blue.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(icon, color: Colors.white, size: 20),
+        child: Icon(icon, color: Colors.blue[300], size: 22),
       ),
       title: Text(
         title,
@@ -152,6 +145,7 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
         ),
       ),
       onTap: onTap,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     );
   }
 
@@ -169,11 +163,11 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Copy $_selectedDay schedule to:',
+              'Copy $_selectedDay\'s schedule to:',
               style: TextStyle(color: Colors.grey[300]),
             ),
             const SizedBox(height: 16),
-            ...(model.days.where((day) => day != _selectedDay).map((day) =>
+            ...model.days.where((day) => day != _selectedDay).map((day) =>
                 ListTile(
                   title: Text(day, style: const TextStyle(color: Colors.white)),
                   onTap: () {
@@ -181,12 +175,12 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Copied $_selectedDay schedule to $day'),
+                        content: Text('Copied $_selectedDay schedule to $day.'),
                         backgroundColor: Colors.green,
                       ),
                     );
                   },
-                ))),
+                )),
           ],
         ),
         actions: [
@@ -230,7 +224,7 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Cleared $_selectedDay schedule'),
+                  content: Text('Cleared $_selectedDay\'s schedule.'),
                   backgroundColor: Colors.orange,
                 ),
               );
@@ -241,73 +235,6 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  void _showImportExportDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
-        title: const Text(
-          'Import/Export Timetable',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.upload, color: Colors.blue),
-              title: const Text('Export Timetable',
-                  style: TextStyle(color: Colors.white)),
-              subtitle: Text('Save as JSON file',
-                  style: TextStyle(color: Colors.grey[400])),
-              onTap: () {
-                Navigator.pop(context);
-                _exportTimetable();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.download, color: Colors.green),
-              title: const Text('Import Timetable',
-                  style: TextStyle(color: Colors.white)),
-              subtitle: Text('Load from JSON file',
-                  style: TextStyle(color: Colors.grey[400])),
-              onTap: () {
-                Navigator.pop(context);
-                _importTimetable();
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: Colors.grey[400]),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _exportTimetable() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Timetable exported successfully (placeholder)'),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
-
-  void _importTimetable() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Timetable imported successfully (placeholder)'),
-        backgroundColor: Colors.blue,
       ),
     );
   }
@@ -338,7 +265,7 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
               ),
               IconButton(
                 onPressed: _editSubjects,
-                icon: const Icon(Icons.edit_note),
+                icon: const Icon(Icons.edit_note_outlined),
                 tooltip: 'Edit Subjects',
               ),
               Container(
@@ -384,7 +311,9 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                               _selectedDay = day;
                             });
                           },
-                          child: Container(
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             decoration: BoxDecoration(
                               color: isSelected
@@ -430,7 +359,7 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Tap time slots to add classes for $_selectedDay',
+                          'Tap time slots to add classes for $_selectedDay.',
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.grey[300],
@@ -460,7 +389,8 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                           onTap: isBlockedSlot
                               ? null
                               : () => _showClassDialog(_selectedDay, timeSlot),
-                          child: Container(
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               gradient: _getCardGradient(
@@ -482,7 +412,7 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                                         spreadRadius: 1,
                                       ),
                                     ]
-                                  : null,
+                                  : [],
                             ),
                             child: Row(
                               children: [
@@ -528,184 +458,7 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
-                                  child: SizedBox(
-                                    child: isBlockedSlot
-                                        ? Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Icon(
-                                                Icons.block,
-                                                color: Colors.grey[600],
-                                                size: 18,
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Expanded(
-                                                child: Text(
-                                                  'Blocked by ${classInfo!.subject.name}',
-                                                  style: TextStyle(
-                                                    color: Colors.grey[600],
-                                                    fontSize: 14,
-                                                    fontStyle: FontStyle.italic,
-                                                  ),
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                            ],
-                                          )
-                                        : classInfo != null
-                                            ? Row(
-                                                children: [
-                                                  Expanded(
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      children: [
-                                                        Text(
-                                                          classInfo
-                                                              .subject.name,
-                                                          style:
-                                                              const TextStyle(
-                                                            color: Colors.white,
-                                                            fontSize: 16,
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                          ),
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                        ),
-                                                        const SizedBox(
-                                                            height: 4),
-                                                        Row(
-                                                          children: [
-                                                            Container(
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                      .symmetric(
-                                                                horizontal: 6,
-                                                                vertical: 2,
-                                                              ),
-                                                              decoration:
-                                                                  BoxDecoration(
-                                                                color: classInfo
-                                                                        .isTheory
-                                                                    ? Colors.blue[
-                                                                        600]
-                                                                    : Colors.green[
-                                                                        600],
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            10),
-                                                              ),
-                                                              child: Text(
-                                                                classInfo
-                                                                        .isTheory
-                                                                    ? 'Theory'
-                                                                    : 'Practical',
-                                                                style:
-                                                                    const TextStyle(
-                                                                  color: Colors
-                                                                      .white,
-                                                                  fontSize: 9,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w600,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                            const SizedBox(
-                                                                width: 6),
-                                                            Container(
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                      .symmetric(
-                                                                horizontal: 6,
-                                                                vertical: 2,
-                                                              ),
-                                                              decoration:
-                                                                  BoxDecoration(
-                                                                color: Colors
-                                                                    .grey[700],
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            10),
-                                                              ),
-                                                              child: Text(
-                                                                '${classInfo.duration}h',
-                                                                style:
-                                                                    const TextStyle(
-                                                                  color: Colors
-                                                                      .white,
-                                                                  fontSize: 9,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w500,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets.all(6),
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.white
-                                                          .withOpacity(0.1),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              6),
-                                                    ),
-                                                    child: Icon(
-                                                      Icons.edit_outlined,
-                                                      color: Colors.white
-                                                          .withOpacity(0.8),
-                                                      size: 14,
-                                                    ),
-                                                  ),
-                                                ],
-                                              )
-                                            : Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets.all(6),
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.grey[700],
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              6),
-                                                    ),
-                                                    child: Icon(
-                                                      Icons.add,
-                                                      color: Colors.grey[400],
-                                                      size: 16,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  Text(
-                                                    'Add Class',
-                                                    style: TextStyle(
-                                                      color: Colors.grey[400],
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                  ),
+                                  child: _buildClassInfoContent(classInfo, isBlockedSlot),
                                 ),
                               ],
                             ),
@@ -723,47 +476,135 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
     );
   }
 
-  LinearGradient _getCardGradient(
-      ClassInfo? classInfo, bool isBlocked, bool isBlockedSlot) {
+  Widget _buildClassInfoContent(ClassInfo? classInfo, bool isBlockedSlot) {
     if (isBlockedSlot) {
-      return LinearGradient(
-        colors: [
-          Colors.grey[900]!,
-          Colors.grey[850]!,
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.block, color: Colors.grey[600], size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Blocked by ${classInfo!.subject.name}',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 14,
+                fontStyle: FontStyle.italic,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
       );
     } else if (classInfo != null) {
-      if (classInfo.isTheory) {
-        return LinearGradient(
-          colors: [
-            Colors.blue[900]!,
-            Colors.blue[800]!,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        );
-      } else {
-        return LinearGradient(
-          colors: [
-            Colors.green[900]!,
-            Colors.green[800]!,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        );
-      }
-    } else {
-      return LinearGradient(
-        colors: [
-          Colors.grey[900]!,
-          Colors.grey[800]!,
+      return Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  classInfo.subject.name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    _buildTag(
+                      classInfo.isTheory ? 'Theory' : 'Practical',
+                      classInfo.isTheory ? Colors.blue[600]! : Colors.green[600]!,
+                    ),
+                    const SizedBox(width: 6),
+                    _buildTag('${classInfo.duration}h', Colors.grey[700]!),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              Icons.edit_outlined,
+              color: Colors.white.withOpacity(0.8),
+              size: 16,
+            ),
+          ),
         ],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
+      );
+    } else {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Colors.grey[700],
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(Icons.add, color: Colors.grey[400], size: 16),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'Add Class',
+            style: TextStyle(
+              color: Colors.grey[400],
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       );
     }
+  }
+
+  Widget _buildTag(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  LinearGradient _getCardGradient(
+      ClassInfo? classInfo, bool isBlocked, bool isBlockedSlot) {
+    Color startColor = Colors.grey[900]!;
+    Color endColor = Colors.grey[800]!;
+
+    if (!isBlockedSlot && classInfo != null) {
+      if (classInfo.isTheory) {
+        startColor = Colors.blue[900]!;
+        endColor = Colors.blue[800]!;
+      } else {
+        startColor = Colors.green[900]!;
+        endColor = Colors.green[800]!;
+      }
+    }
+
+    return LinearGradient(
+      colors: [startColor, endColor],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    );
   }
 
   Color _getBorderColor(
@@ -789,7 +630,7 @@ class ClassSelectionDialog extends StatefulWidget {
   const ClassSelectionDialog({
     super.key,
     required this.subjects,
-    required this.currentClass,
+    this.currentClass,
     required this.timeSlot,
     required this.timeSlots,
     required this.onClassSelected,
@@ -809,7 +650,7 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
   void initState() {
     super.initState();
     if (widget.currentClass != null && !widget.currentClass!.isBlockedSlot) {
-      _selectedSubject = widget.currentClass!.subject;
+      _selectedSubject = widget.subjects.firstWhere((s) => s.id == widget.currentClass!.subject.id);
       _selectedType = widget.currentClass!.type;
       _selectedDuration = widget.currentClass!.duration;
     }
@@ -924,6 +765,7 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<Subject>(
                   value: _selectedSubject,
+                  isExpanded: true,
                   dropdownColor: Colors.grey[800],
                   style: const TextStyle(color: Colors.white),
                   hint: const Text(
@@ -933,19 +775,7 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
                   items: widget.subjects.map((subject) {
                     return DropdownMenuItem<Subject>(
                       value: subject,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(subject.name),
-                          Text(
-                            subject.creditDescription,
-                            style: TextStyle(
-                              color: Colors.grey[400],
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
+                      child: Text(subject.name, overflow: TextOverflow.ellipsis),
                     );
                   }).toList(),
                   onChanged: (value) {
@@ -1090,7 +920,7 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  '2-hour option not available for last time slot',
+                  '2-hour option not available for last time slot.',
                   style: TextStyle(
                     color: Colors.orange[300],
                     fontSize: 12,

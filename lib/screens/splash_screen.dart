@@ -35,23 +35,23 @@ class _SplashScreenState extends State<SplashScreen>
 
   void _initializeAnimations() {
     _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 1800),
-      vsync: this,
-    );
-    _slideController = AnimationController(
       duration: const Duration(milliseconds: 1400),
       vsync: this,
     );
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
     _loadingController = AnimationController(
-      duration: const Duration(milliseconds: 3000),
+      duration: const Duration(milliseconds: 2500),
       vsync: this,
     );
     _backgroundController = AnimationController(
-      duration: const Duration(milliseconds: 10000),
+      duration: const Duration(milliseconds: 8000),
       vsync: this,
     );
     _glowController = AnimationController(
-      duration: const Duration(milliseconds: 3000),
+      duration: const Duration(milliseconds: 2500),
       vsync: this,
     );
 

@@ -48,21 +48,30 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
       setState(() {
         _subjectCount = count;
         _showSubjectInputs = true;
+        // If not editing, or if the new count is smaller, adjust the list
         if (!widget.isEditing) {
           _subjects.clear();
-        }
-        if (widget.isEditing && _subjects.length > count) {
-          _subjects = _subjects.sublist(0, count);
+        } else {
+          if (_subjects.length > count) {
+            _subjects = _subjects.sublist(0, count);
+          }
+          // If the new count is larger, we just allow adding more subjects.
         }
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please enter a valid number between 1 and 15'),
-          backgroundColor: Colors.red,
+          content: Text('Please enter a valid number between 1 and 15.'),
+          backgroundColor: Colors.redAccent,
         ),
       );
     }
+  }
+
+  void _resetSubjectCount() {
+    setState(() {
+      _showSubjectInputs = false;
+    });
   }
 
   void _showAddSubjectDialog([int? index]) {
@@ -72,10 +81,11 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
     bool hasPractical = false;
 
     if (index != null && index < _subjects.length) {
-      nameController.text = _subjects[index].name;
-      creditType = _subjects[index].creditType;
-      subjectType = _subjects[index].subjectType;
-      hasPractical = _subjects[index].hasPractical;
+      final subject = _subjects[index];
+      nameController.text = subject.name;
+      creditType = subject.creditType;
+      subjectType = subject.subjectType;
+      hasPractical = subject.hasPractical;
     }
 
     showDialog(
@@ -391,15 +401,13 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
               onPressed: () {
                 if (nameController.text.trim().isNotEmpty) {
                   setState(() {
-                    final subject = index != null
-                        ? _subjects[index]
-                            .copyWith(name: nameController.text.trim())
-                        : Subject(
-                            name: nameController.text.trim(),
-                            hasPractical: hasPractical,
-                            creditType: creditType,
-                            subjectType: subjectType,
-                          );
+                    final subject = Subject(
+                      id: (index != null) ? _subjects[index].id : null,
+                      name: nameController.text.trim(),
+                      hasPractical: hasPractical,
+                      creditType: creditType,
+                      subjectType: subjectType,
+                    );
 
                     if (index != null) {
                       _subjects[index] = subject;
@@ -570,7 +578,7 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                 Text(
                   widget.isEditing
                       ? 'Modify your subjects and credit information. Existing timetable and attendance data will be preserved.'
-                      : 'Set up your subjects with credit and practical information',
+                      : 'Set up your subjects with credit and practical information.',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey[400],
@@ -578,240 +586,264 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                   ),
                 ),
                 const SizedBox(height: 40),
-                if (!_showSubjectInputs) ...[
-                  const Text(
-                    'How many subjects do you have?',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _subjectCountController,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                            LengthLimitingTextInputFormatter(2),
-                          ],
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: 'Enter number of subjects (1-15)',
-                            hintStyle: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 14,
-                            ),
-                            filled: true,
-                            fillColor: Colors.grey[900],
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 16,
-                            ),
-                          ),
-                          onSubmitted: (_) => _onSubjectCountSubmitted(),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      ElevatedButton(
-                        onPressed: _onSubjectCountSubmitted,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 16,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Next',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-                if (_showSubjectInputs) ...[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Subjects (${_subjects.length}/$_subjectCount)',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                      if (_subjects.length < _subjectCount)
-                        ElevatedButton.icon(
-                          onPressed: () => _showAddSubjectDialog(),
-                          icon: const Icon(Icons.add, size: 18),
-                          label: const Text('Add'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.black,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  LimitedBox(
-                    maxHeight: MediaQuery.of(context).size.height * 0.5,
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      physics: const ClampingScrollPhysics(),
-                      itemCount: _subjects.length,
-                      itemBuilder: (context, index) {
-                        final subject = _subjects[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[900],
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.grey[700]!,
-                                width: 1,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        subject.name,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        subject.creditDescription,
-                                        style: TextStyle(
-                                          color: Colors.grey[400],
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            Icons.book,
-                                            color: Colors.blue[400],
-                                            size: 14,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            'Theory: ${subject.totalTheoryHours}h',
-                                            style: TextStyle(
-                                              color: Colors.grey[400],
-                                              fontSize: 11,
-                                            ),
-                                          ),
-                                          if (subject.hasPractical) ...[
-                                            const SizedBox(width: 12),
-                                            Icon(
-                                              Icons.science,
-                                              color: Colors.green[400],
-                                              size: 14,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              'Practical: ${subject.totalPracticalHours}h',
-                                              style: TextStyle(
-                                                color: Colors.grey[400],
-                                                fontSize: 11,
-                                              ),
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                IconButton(
-                                  onPressed: () => _showAddSubjectDialog(index),
-                                  icon: Icon(
-                                    Icons.edit,
-                                    color: Colors.grey[400],
-                                    size: 20,
-                                  ),
-                                ),
-                                IconButton(
-                                  onPressed: () =>
-                                      _showDeleteConfirmation(index),
-                                  icon: Icon(
-                                    Icons.delete,
-                                    color: Colors.red[400],
-                                    size: 20,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _subjects.length == _subjectCount
-                          ? _proceedToTimetable
-                          : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        widget.isEditing
-                            ? 'Update Subjects'
-                            : 'Create Timetable',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                if (!_showSubjectInputs)
+                  _buildSubjectCountInput()
+                else
+                  _buildSubjectList(),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSubjectCountInput() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'How many subjects do you have?',
+          style: TextStyle(
+            fontSize: 18,
+            color: Colors.white,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _subjectCountController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(2),
+                ],
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Enter number of subjects (1-15)',
+                  hintStyle: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 14,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[900],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                ),
+                onSubmitted: (_) => _onSubjectCountSubmitted(),
+              ),
+            ),
+            const SizedBox(width: 16),
+            ElevatedButton(
+              onPressed: _onSubjectCountSubmitted,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Next',
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSubjectList() {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Subjects (${_subjects.length}/$_subjectCount)',
+              style: const TextStyle(
+                fontSize: 18,
+                color: Colors.white,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            Row(
+              children: [
+                TextButton.icon(
+                  onPressed: _resetSubjectCount,
+                  icon: const Icon(Icons.edit, size: 16),
+                  label: const Text('Edit Count'),
+                  style: TextButton.styleFrom(foregroundColor: Colors.grey[400]),
+                ),
+                if (_subjects.length < _subjectCount)
+                  ElevatedButton.icon(
+                    onPressed: () => _showAddSubjectDialog(),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Add'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        LimitedBox(
+          maxHeight: MediaQuery.of(context).size.height * 0.5,
+          child: ListView.builder(
+            shrinkWrap: true,
+            physics: const BouncingScrollPhysics(),
+            itemCount: _subjects.length,
+            itemBuilder: (context, index) {
+              final subject = _subjects[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[900],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.grey[700]!,
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              subject.name,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              subject.creditDescription,
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.book,
+                                  color: Colors.blue[400],
+                                  size: 14,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Theory: ${subject.totalTheoryHours}h',
+                                  style: TextStyle(
+                                    color: Colors.grey[400],
+                                    fontSize: 11,
+                                  ),
+                                ),
+                                if (subject.hasPractical) ...[
+                                  const SizedBox(width: 12),
+                                  Icon(
+                                    Icons.science,
+                                    color: Colors.green[400],
+                                    size: 14,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Practical: ${subject.totalPracticalHours}h',
+                                    style: TextStyle(
+                                      color: Colors.grey[400],
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => _showAddSubjectDialog(index),
+                        icon: Icon(
+                          Icons.edit,
+                          color: Colors.grey[400],
+                          size: 20,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => _showDeleteConfirmation(index),
+                        icon: Icon(
+                          Icons.delete,
+                          color: Colors.red[400],
+                          size: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: _subjects.length == _subjectCount
+                ? _proceedToTimetable
+                : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              disabledBackgroundColor: Colors.grey[800],
+            ),
+            child: Text(
+              widget.isEditing
+                  ? 'Update Subjects'
+                  : 'Create Timetable',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
