@@ -5,7 +5,7 @@ import 'subject_setup_screen.dart';
 import 'attendance_screen.dart';
 import 'timetable_management_screen.dart';
 import '../models/timetable_model.dart';
-import '../services/notification_service.dart';
+import '../theme/app_theme.dart'; 
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,84 +19,117 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final model = context.watch<TimetableModel>();
     final hasExistingTimetable = model.subjects.isNotEmpty;
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        title: const Text(
-          'TimeWise',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w300,
-            letterSpacing: 1,
-          ),
-        ),
-        backgroundColor: Colors.black,
-        elevation: 0,
-        actions: [
-          if (hasExistingTimetable)
-            IconButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AttendanceScreen(),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            pinned: true,
+            stretch: true,
+            expandedHeight: 220.0,
+            backgroundColor: theme.scaffoldBackgroundColor,
+            flexibleSpace: FlexibleSpaceBar(
+              titlePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              title: Text(
+                'TimeWise',
+                style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
+              ),
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          theme.colorScheme.primary.withOpacity(0.5),
+                          theme.scaffoldBackgroundColor,
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        stops: const [0.0, 0.7],
+                      ),
+                    ),
                   ),
-                );
-              },
-              icon: const Icon(Icons.fact_check_outlined, color: Colors.white),
-              tooltip: 'Go to Attendance',
+                  Positioned(
+                    top: -100,
+                    right: -100,
+                    child: Container(
+                      width: 250,
+                      height: 250,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withOpacity(0.15),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Welcome to TimeWise',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.white,
-                  letterSpacing: 1,
+            actions: [
+              if (hasExistingTimetable)
+                IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AttendanceScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.fact_check_outlined),
+                  tooltip: 'Go to Attendance',
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Smart Attendance Tracker for DTU',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[400],
-                  fontWeight: FontWeight.w300,
-                ),
-              ),
-              const SizedBox(height: 40),
-              if (hasExistingTimetable) ...[
-                _buildTodaysSchedule(context, model),
-                const SizedBox(height: 24),
-              ],
-              _buildQuickActionCard(
-                context,
-                hasExistingTimetable: hasExistingTimetable,
-                model: model,
-              ),
-            const SizedBox(height: 24),
             ],
           ),
-        ),
+          SliverList(
+            delegate: SliverChildListDelegate(
+              [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 16),
+                      Text(
+                        'Welcome to TimeWise',
+                        style: theme.textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Your smart attendance tracker.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      if (hasExistingTimetable) ...[
+                        _buildTodaysSchedule(context, model),
+                        const SizedBox(height: 24),
+                      ],
+                      _buildQuickActionCard(
+                        context,
+                        hasExistingTimetable: hasExistingTimetable,
+                        model: model,
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildStyledContainer({required Widget child}) {
+  Widget _buildStyledCard({required Widget child}) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.grey[900]?.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(20),
+        color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(16.0),
         border: Border.all(
           color: Colors.white.withOpacity(0.15),
           width: 1.0,
@@ -110,33 +143,32 @@ class _HomeScreenState extends State<HomeScreen> {
     final today = DateTime.now();
     final dayName = DateFormat('EEEE').format(today);
     final classesToday = model.getClassesForDay(dayName);
+    final theme = Theme.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           "Today's Schedule",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w400,
-          ),
+          style: theme.textTheme.titleLarge,
         ),
         const SizedBox(height: 12),
-        _buildStyledContainer(
+        _buildStyledCard(
           child: classesToday.isEmpty
               ? Center(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 24.0),
                     child: Column(
                       children: [
-                        Icon(Icons.free_breakfast_outlined,
-                            color: Colors.grey[400], size: 32),
-                        const SizedBox(height: 8),
+                        Icon(
+                          Icons.free_breakfast_outlined,
+                          color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
+                          size: 32,
+                        ),
+                        const SizedBox(height: 12),
                         Text(
                           'No classes scheduled for today!',
-                          style: TextStyle(
-                              color: Colors.grey[400], fontSize: 14),
+                          style: theme.textTheme.bodyMedium,
                         ),
                       ],
                     ),
@@ -159,24 +191,22 @@ class _HomeScreenState extends State<HomeScreen> {
                               ? Icons.book_outlined
                               : Icons.science_outlined,
                           color: classInfo.isTheory
-                              ? Colors.blue[300]
-                              : Colors.green[300],
-                          size: 20,
+                              ? AppTheme.accentBlue
+                              : theme.colorScheme.secondary,
+                          size: 22,
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Text(
                             classInfo.subject.name,
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500),
+                            style: theme.textTheme.bodyLarge,
                           ),
                         ),
                         Text(
                           classInfo.timeSlot ?? 'N/A',
-                          style:
-                              TextStyle(color: Colors.grey[300], fontSize: 14),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.textTheme.bodyMedium?.color?.withOpacity(0.8),
+                          ),
                         ),
                       ],
                     );
@@ -189,27 +219,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildQuickActionCard(BuildContext context,
       {required bool hasExistingTimetable, required TimetableModel model}) {
-    return _buildStyledContainer(
+    final theme = Theme.of(context);
+    return _buildStyledCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             hasExistingTimetable ? 'Active Timetable' : 'Get Started',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
+            style: theme.textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
           Text(
             hasExistingTimetable
                 ? 'You have an active schedule. Track attendance or manage your timetables.'
                 : 'Set up your subjects and timetable to start tracking your attendance.',
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.8),
-              fontSize: 14,
-            ),
+            style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: 24),
           SizedBox(
@@ -228,24 +252,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
               icon: Icon(
-                hasExistingTimetable ? Icons.edit_note : Icons.add_circle,
+                hasExistingTimetable ? Icons.edit_note_outlined : Icons.add_circle_outline,
                 size: 20,
               ),
               label: Text(
                 hasExistingTimetable ? 'Edit Subjects' : 'Setup Timetable',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
               ),
             ),
           ),
@@ -263,80 +274,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
                 icon: const Icon(Icons.layers_outlined, size: 20),
-                label: const Text('Manage Templates'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  side: BorderSide(color: Colors.white.withOpacity(0.5)),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
+                label: const Text('Manage Timetable'),
               ),
             ),
           ]
-        ],
-      ),
-    );
-  }
-
-  Widget _buildToolsCard(BuildContext context) {
-    return _buildStyledContainer(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Enable daily reminders to mark your attendance at 6 PM (Mon-Fri).',
-            style: TextStyle(color: Colors.grey[300], fontSize: 14),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    NotificationService().scheduleWeeklyAttendanceReminders();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Attendance reminders scheduled!'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.notifications_active, size: 18),
-                  label: const Text('Enable'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.green,
-                    side: const BorderSide(color: Colors.green),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    NotificationService().cancelAllNotifications();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('All reminders cancelled.'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.notifications_off, size: 18),
-                  label: const Text('Disable'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    side: const BorderSide(color: Colors.red),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );

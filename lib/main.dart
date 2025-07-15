@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'models/timetable_model.dart';
 import 'screens/splash_screen.dart';
 import 'screens/home_screen.dart';
-import 'models/timetable_model.dart';
 import 'services/notification_service.dart';
-import 'package:flutter/services.dart';
+import 'theme/app_theme.dart'; 
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,9 +39,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'TimeWise',
-      theme: ThemeData.dark().copyWith(
-        primaryColor: Colors.blue,
-      ),
+      theme: AppTheme.darkTheme, 
       debugShowCheckedModeBanner: false,
       initialRoute: '/',
       routes: {
