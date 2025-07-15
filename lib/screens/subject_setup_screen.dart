@@ -76,7 +76,7 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
   }
 
   void _showAddSubjectDialog([int? index]) {
-    final theme = Theme.of(context);
+    Theme.of(context);
     final nameController = TextEditingController();
     CreditType creditType = CreditType.fourCredit;
     SubjectType subjectType = SubjectType.theory;
@@ -443,7 +443,7 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
   }
 
   void _showDeleteConfirmation(int index) {
-    final theme = Theme.of(context);
+    Theme.of(context);
     final subject = _subjects[index];
     showDialog(
       context: context,

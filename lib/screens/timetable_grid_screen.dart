@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:timewise_dtu/theme/app_theme.dart';
 import 'attendance_screen.dart';
 import 'subject_setup_screen.dart';
 import '../models/timetable_model.dart';
@@ -368,24 +369,14 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                             duration: const Duration(milliseconds: 300),
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              gradient: _getCardGradient(classInfo, isBlocked, isBlockedSlot),
+                              color: isBlockedSlot
+                                  ? theme.colorScheme.surface.withOpacity(0.5)
+                                  : theme.colorScheme.surfaceVariant,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: _getBorderColor(classInfo, isBlocked, isBlockedSlot),
                                 width: 1.5,
                               ),
-                              boxShadow: classInfo != null && !isBlockedSlot
-                                  ? [
-                                      BoxShadow(
-                                        color: (classInfo.isTheory
-                                                ? theme.colorScheme.primary
-                                                : theme.colorScheme.secondary)
-                                            .withOpacity(0.2),
-                                        blurRadius: 8,
-                                        spreadRadius: 1,
-                                      ),
-                                    ]
-                                  : [],
                             ),
                             child: Row(
                               children: [
@@ -441,6 +432,8 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
 
   Widget _buildClassInfoContent(ClassInfo? classInfo, bool isBlockedSlot) {
     final theme = Theme.of(context);
+    final practicalColor = Colors.teal[300]!;
+
     if (isBlockedSlot) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -477,11 +470,11 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                   children: [
                     _buildTag(
                       classInfo.isTheory ? 'Theory' : 'Practical',
-                      classInfo.isTheory ? theme.colorScheme.primary : theme.colorScheme.secondary,
+                      classInfo.isTheory ? AppTheme.accentBlue : practicalColor,
                     ),
                     const SizedBox(width: 6),
                     _buildTag(
-                        '${classInfo.duration}h', theme.colorScheme.surfaceVariant),
+                        '${classInfo.duration}h', theme.colorScheme.surface),
                   ],
                 ),
               ],
@@ -508,7 +501,7 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceVariant,
+              color: theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(Icons.add, color: theme.textTheme.bodyMedium?.color, size: 16),
@@ -534,39 +527,19 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
       ),
       child: Text(
         text,
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white),
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
       ),
-    );
-  }
-
-  LinearGradient _getCardGradient(ClassInfo? classInfo, bool isBlocked, bool isBlockedSlot) {
-    final theme = Theme.of(context);
-    Color startColor = theme.colorScheme.surface;
-    Color endColor = theme.colorScheme.surfaceVariant;
-
-    if (!isBlockedSlot && classInfo != null) {
-      if (classInfo.isTheory) {
-        startColor = theme.colorScheme.primary.withOpacity(0.3);
-        endColor = theme.colorScheme.primary.withOpacity(0.2);
-      } else {
-        startColor = theme.colorScheme.secondary.withOpacity(0.3);
-        endColor = theme.colorScheme.secondary.withOpacity(0.2);
-      }
-    }
-
-    return LinearGradient(
-      colors: [startColor, endColor],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
     );
   }
 
   Color _getBorderColor(ClassInfo? classInfo, bool isBlocked, bool isBlockedSlot) {
     final theme = Theme.of(context);
+    final practicalColor = Colors.teal[300]!;
+
     if (isBlockedSlot) {
-      return theme.dividerColor;
+      return theme.dividerColor.withOpacity(0.5);
     } else if (classInfo != null) {
-      return classInfo.isTheory ? theme.colorScheme.primary : theme.colorScheme.secondary;
+      return classInfo.isTheory ? AppTheme.accentBlue : practicalColor;
     } else {
       return theme.colorScheme.surfaceVariant;
     }

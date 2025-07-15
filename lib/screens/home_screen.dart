@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'subject_setup_screen.dart';
+import 'package:timewise_dtu/theme/app_theme.dart';
 import 'attendance_screen.dart';
-import 'timetable_management_screen.dart';
 import '../models/timetable_model.dart';
-import '../theme/app_theme.dart'; 
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -30,10 +28,12 @@ class _HomeScreenState extends State<HomeScreen> {
             expandedHeight: 220.0,
             backgroundColor: theme.scaffoldBackgroundColor,
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              titlePadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               title: Text(
                 'TimeWise',
-                style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
+                style: theme.textTheme.titleLarge
+                    ?.copyWith(color: Colors.white),
               ),
               background: Stack(
                 fit: StackFit.expand,
@@ -99,7 +99,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         'Your smart attendance tracker.',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                          color: theme.textTheme.bodyMedium?.color
+                              ?.withOpacity(0.7),
                         ),
                       ),
                       const SizedBox(height: 32),
@@ -107,11 +108,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         _buildTodaysSchedule(context, model),
                         const SizedBox(height: 24),
                       ],
-                      _buildQuickActionCard(
-                        context,
-                        hasExistingTimetable: hasExistingTimetable,
-                        model: model,
-                      ),
                       const SizedBox(height: 24),
                     ],
                   ),
@@ -162,7 +158,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Icon(
                           Icons.free_breakfast_outlined,
-                          color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
+                          color: theme.textTheme.bodyMedium?.color
+                              ?.withOpacity(0.5),
                           size: 32,
                         ),
                         const SizedBox(height: 12),
@@ -205,7 +202,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text(
                           classInfo.timeSlot ?? 'N/A',
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.textTheme.bodyMedium?.color?.withOpacity(0.8),
+                            color: theme.textTheme.bodyMedium?.color
+                                ?.withOpacity(0.8),
                           ),
                         ),
                       ],
@@ -217,69 +215,5 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuickActionCard(BuildContext context,
-      {required bool hasExistingTimetable, required TimetableModel model}) {
-    final theme = Theme.of(context);
-    return _buildStyledCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            hasExistingTimetable ? 'Active Timetable' : 'Get Started',
-            style: theme.textTheme.titleLarge,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            hasExistingTimetable
-                ? 'You have an active schedule. Track attendance or manage your timetables.'
-                : 'Set up your subjects and timetable to start tracking your attendance.',
-            style: theme.textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => SubjectSetupScreen(
-                      existingSubjects:
-                          hasExistingTimetable ? model.subjects : null,
-                      isEditing: hasExistingTimetable,
-                    ),
-                  ),
-                );
-              },
-              icon: Icon(
-                hasExistingTimetable ? Icons.edit_note_outlined : Icons.add_circle_outline,
-                size: 20,
-              ),
-              label: Text(
-                hasExistingTimetable ? 'Edit Subjects' : 'Setup Timetable',
-              ),
-            ),
-          ),
-          if (hasExistingTimetable) ...[
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const TimetableManagementScreen(),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.layers_outlined, size: 20),
-                label: const Text('Manage Timetable'),
-              ),
-            ),
-          ]
-        ],
-      ),
-    );
-  }
+
 }
