@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:intl/intl.dart'; 
 import 'subject_model.dart';
 
 enum ClassType { theory, practical }
@@ -476,6 +477,71 @@ class TimetableModel extends ChangeNotifier {
         }
       }
     }
+
+    classes.sort((a, b) => _timeSlots.indexOf(a.timeSlot!).compareTo(_timeSlots.indexOf(b.timeSlot!)));
     return classes;
+  }
+
+  double getOverallAttendancePercentage() {
+    if (_attendanceData.isEmpty) return 100.0;
+
+    double totalHeld = 0;
+    double totalAttended = 0;
+
+    _attendanceData.forEach((_, subjectSummary) {
+      subjectSummary.forEach((_, summary) {
+        totalHeld += summary.totalHoursHeld;
+        totalAttended += summary.totalHoursAttended;
+      });
+    });
+
+    if (totalHeld == 0) return 100.0; 
+    return (totalAttended / totalHeld) * 100;
+  }
+
+  ClassInfo? getNextClass() {
+    final now = DateTime.now();
+    final currentTime = TimeOfDay.fromDateTime(now);
+    final todayDayName = DateFormat('EEEE').format(now);
+
+    if (!_days.contains(todayDayName)) {
+      return _findFirstClassFromDay(_days.first);
+    }
+    
+    final todayIndex = _days.indexOf(todayDayName);
+
+    double timeOfDayToMinutes(TimeOfDay time) => time.hour * 60.0 + time.minute;
+    final currentTimeInMinutes = timeOfDayToMinutes(currentTime);
+
+    final todaysClasses = getClassesForDay(todayDayName);
+    for (final classInfo in todaysClasses) {
+      final startTimeString = classInfo.timeSlot!.split('-')[0]; 
+      final timeParts = startTimeString.split(':');
+      final classStartTime = TimeOfDay(hour: int.parse(timeParts[0]), minute: int.parse(timeParts[1]));
+
+      if (timeOfDayToMinutes(classStartTime) > currentTimeInMinutes) {
+        return classInfo;
+      }
+    }
+
+    for (int i = 1; i < _days.length; i++) {
+      final nextDayIndex = (todayIndex + i) % _days.length;
+      final nextDayName = _days[nextDayIndex];
+      final nextDayClass = _findFirstClassFromDay(nextDayName);
+      if (nextDayClass != null) {
+        return nextDayClass; 
+      }
+    }
+
+    return null;
+  }
+
+  ClassInfo? _findFirstClassFromDay(String dayName) {
+    final classes = getClassesForDay(dayName);
+    if (classes.isNotEmpty) {
+      
+      return classes.first;
+    }
+    return null;
   }
 }

@@ -49,14 +49,12 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
       setState(() {
         _subjectCount = count;
         _showSubjectInputs = true;
-        // If not editing, or if the new count is smaller, adjust the list
         if (!widget.isEditing) {
           _subjects.clear();
         } else {
           if (_subjects.length > count) {
             _subjects = _subjects.sublist(0, count);
           }
-          // If the new count is larger, we just allow adding more subjects.
         }
       });
     } else {

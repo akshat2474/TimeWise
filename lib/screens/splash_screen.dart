@@ -4,6 +4,14 @@ import 'dart:math' as math;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:timewise_dtu/theme/app_theme.dart';
 
+class Star {
+  final Offset position;
+  final double radius;
+  final double twinkleSpeed;
+
+  Star({required this.position, required this.radius, required this.twinkleSpeed});
+}
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -11,35 +19,56 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
-    with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _textFadeInAnimation;
   late Animation<double> _footerSlideUpAnimation;
+  late Animation<double> _logoScaleAnimation;
+
+  late List<Star> _stars;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 3500),
+      duration: const Duration(milliseconds: 4000),
       vsync: this,
     );
 
     _textFadeInAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.1, 0.7, curve: Curves.easeOut),
+        curve: const Interval(0.15, 0.6, curve: Curves.easeOut),
       ),
     );
 
     _footerSlideUpAnimation = Tween<double>(begin: 50.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.4, 0.9, curve: Curves.easeOutCubic),
+        curve: const Interval(0.4, 0.8, curve: Curves.easeOutCubic),
       ),
     );
 
+    _logoScaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.5, curve: Curves.elasticOut),
+      ),
+    );
+
+    _generateStars();
     _startSequence();
+  }
+
+  void _generateStars() {
+    _stars = List.generate(150, (index) {
+      final random = math.Random();
+      return Star(
+        position: Offset(random.nextDouble(), random.nextDouble()),
+        radius: random.nextDouble() * 1.5 + 0.5,
+        twinkleSpeed: random.nextDouble() * 2.0 + 1.0,
+      );
+    });
   }
 
   void _startSequence() async {
@@ -51,7 +80,7 @@ class _SplashScreenState extends State<SplashScreen>
     );
     _controller.forward();
 
-    await Future.delayed(const Duration(milliseconds: 4000));
+    await Future.delayed(const Duration(milliseconds: 3600));
     if (mounted) {
       _navigateToHome();
     }
@@ -88,7 +117,10 @@ class _SplashScreenState extends State<SplashScreen>
             child: AnimatedBuilder(
               animation: _controller,
               builder: (context, child) => CustomPaint(
-                painter: CombinedBackgroundPainter(progress: _controller.value),
+                painter: StarfieldPainter(
+                  progress: _controller.value,
+                  stars: _stars,
+                ),
               ),
             ),
           ),
@@ -99,10 +131,13 @@ class _SplashScreenState extends State<SplashScreen>
                 children: [
                   const Spacer(flex: 3),
                   _buildTitle(),
-                  const Spacer(flex: 2),
-                  _buildLoadingIndicator(),
-                  const Spacer(flex: 2),
+                  const SizedBox(height: 24),
+                  _buildSubtitle(),
+                  const SizedBox(height: 40),
+                  _buildDotLoader(),
+                  const Spacer(flex: 1),
                   _buildFooter(),
+                  const Spacer(flex: 2),
                 ],
               ),
             ),
@@ -113,29 +148,36 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Widget _buildTitle() {
-    return FadeTransition(
-      opacity: _textFadeInAnimation,
-      child: const AnimatedAppName(),
+    return ScaleTransition(
+      scale: _logoScaleAnimation,
+      child: FadeTransition(
+        opacity: _textFadeInAnimation,
+        child: const AnimatedAppName(),
+      ),
     );
   }
 
-  Widget _buildLoadingIndicator() {
+  Widget _buildSubtitle() {
+    return FadeTransition(
+      opacity: CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.3, 0.7),
+      ),
+      child: Text(
+        'Manage your time wisely',
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: AppTheme.textSecondary,
+              fontWeight: FontWeight.w400,
+              letterSpacing: 1.2,
+            ),
+      ),
+    );
+  }
+
+  Widget _buildDotLoader() {
     return FadeTransition(
       opacity: _textFadeInAnimation,
-      child: SizedBox(
-        width: 220,
-        height: 4,
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, child) => CustomPaint(
-            painter: ShimmerLoadingBarPainter(
-              progress: _controller.value,
-              shimmerColor: AppTheme.primary,
-              backgroundColor: AppTheme.surfaceVariant.withOpacity(0.5),
-            ),
-          ),
-        ),
-      ),
+      child: DotLoader(controller: _controller),
     );
   }
 
@@ -148,7 +190,7 @@ class _SplashScreenState extends State<SplashScreen>
           child: FadeTransition(
             opacity: CurvedAnimation(
               parent: _controller,
-              curve: const Interval(0.6, 1.0),
+              curve: const Interval(0.5, 0.9),
             ),
             child: child,
           ),
@@ -207,56 +249,69 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 }
+
 class AnimatedAppName extends StatefulWidget {
   const AnimatedAppName({super.key});
-
   @override
   State<AnimatedAppName> createState() => _AnimatedAppNameState();
 }
 
 class _AnimatedAppNameState extends State<AnimatedAppName> with SingleTickerProviderStateMixin {
   late AnimationController _charController;
-
   @override
   void initState() {
     super.initState();
     _charController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 500),
       vsync: this,
     );
     _charController.forward();
   }
-
   @override
   void dispose() {
     _charController.dispose();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     final textStyle = Theme.of(context).textTheme.displayMedium?.copyWith(
-          fontWeight: FontWeight.w600,
-          letterSpacing: 3,
-          color: Colors.white,
-          fontSize: 55
-        );
+      fontWeight: FontWeight.w700, 
+      letterSpacing: 4, 
+      color: Colors.white, 
+      fontSize: 58, 
+      shadows: [
+        Shadow(
+          offset: const Offset(0, 2), 
+          blurRadius: 4, 
+          color: AppTheme.primary.withOpacity(0.3),
+        ),
+      ],
+    );
     const appName = 'TimeWise';
-
     return AnimatedBuilder(
-      animation: _charController,
+      animation: _charController, 
       builder: (context, child) {
         return Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: MainAxisSize.min, 
           children: List.generate(appName.length, (index) {
             final delay = index / appName.length;
             final animation = CurvedAnimation(
-              parent: _charController,
-              curve: Interval(delay * 0.5, math.min(delay * 0.5 + 0.5, 1.0), curve: Curves.easeOut),
+              parent: _charController, 
+              curve: Interval(
+                delay * 0.6, 
+                math.min(delay * 0.6 + 0.4, 1.0), 
+                curve: Curves.elasticOut
+              ),
             );
             return FadeTransition(
-              opacity: animation,
-              child: Text(appName[index], style: textStyle),
+              opacity: animation, 
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.5), 
+                  end: Offset.zero,
+                ).animate(animation), 
+                child: Text(appName[index], style: textStyle),
+              ),
             );
           }),
         );
@@ -265,39 +320,47 @@ class _AnimatedAppNameState extends State<AnimatedAppName> with SingleTickerProv
   }
 }
 
-class ShimmerLoadingBarPainter extends CustomPainter {
-  final double progress;
-  final Color shimmerColor;
-  final Color backgroundColor;
-
-  ShimmerLoadingBarPainter({required this.progress, required this.shimmerColor, required this.backgroundColor});
+class DotLoader extends StatelessWidget {
+  final AnimationController controller;
+  const DotLoader({super.key, required this.controller});
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final backgroundPaint = Paint()
-      ..color = backgroundColor
-      ..style = PaintingStyle.fill;
-    canvas.drawRRect(RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(size.height / 2)), backgroundPaint);
-    
-    final shimmerWidth = size.width * 0.4;
-    final shimmerPosition = (size.width + shimmerWidth) * (progress * 2 % 1) - shimmerWidth;
-
-    final shimmerPaint = Paint()
-      ..shader = LinearGradient(
-        colors: [Colors.transparent, shimmerColor.withOpacity(0.8), Colors.transparent],
-        stops: const [0.0, 0.5, 1.0],
-      ).createShader(Rect.fromLTWH(shimmerPosition, 0, shimmerWidth, size.height));
-    
-    canvas.drawRRect(RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(size.height / 2)), shimmerPaint);
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(3, (index) {
+        return AnimatedBuilder(
+          animation: controller,
+          builder: (context, child) {
+            final delay = index * 0.2;
+            final opacity = (math.sin((controller.value + delay) * math.pi * 2) + 1) / 2;
+            
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              child: Opacity(
+                opacity: opacity,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      }),
+    );
   }
-  
-  @override
-  bool shouldRepaint(covariant ShimmerLoadingBarPainter oldDelegate) => true;
 }
 
-class CombinedBackgroundPainter extends CustomPainter {
+class StarfieldPainter extends CustomPainter {
   final double progress;
-  CombinedBackgroundPainter({required this.progress});
+  final List<Star> stars;
+
+  StarfieldPainter({required this.progress, required this.stars});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -313,21 +376,22 @@ class CombinedBackgroundPainter extends CustomPainter {
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), gradientPaint);
 
-    final dotPaint = Paint()
-      ..color = AppTheme.primary.withOpacity(0.2);
+    final starPaint = Paint()..color = Colors.white;
+    final curve = Curves.easeOut.transform(progress);
 
-    const gridSize = 40.0;
-    
-    final gridOpacity = math.sin(progress * math.pi);
-    dotPaint.color = dotPaint.color.withOpacity(dotPaint.color.opacity * gridOpacity);
-
-    for (double y = 0; y < size.height; y += gridSize) {
-      for (double x = 0; x < size.width; x += gridSize) {
-        canvas.drawCircle(Offset(x, y), 1.0, dotPaint);
-      }
+    for (final star in stars) {
+      final twinkle = 0.5 + (math.sin(progress * math.pi * star.twinkleSpeed) * 0.5);
+      final opacity = (twinkle * curve).clamp(0.0, 1.0);
+      
+      starPaint.color = Colors.white.withOpacity(opacity);
+      canvas.drawCircle(
+        Offset(star.position.dx * size.width, star.position.dy * size.height),
+        star.radius,
+        starPaint,
+      );
     }
   }
 
   @override
-  bool shouldRepaint(covariant CombinedBackgroundPainter oldDelegate) => progress != oldDelegate.progress;
+  bool shouldRepaint(covariant StarfieldPainter oldDelegate) => true;
 }
