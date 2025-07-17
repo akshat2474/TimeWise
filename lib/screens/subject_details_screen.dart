@@ -258,7 +258,7 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
           child: LineChart(
             LineChartData(
               minY: 0,
-              maxY: 105,
+              maxY: 100,
               lineTouchData: LineTouchData(
                 touchTooltipData: LineTouchTooltipData(
                   tooltipBgColor: Colors.black.withOpacity(0.8),
@@ -267,7 +267,9 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                       return LineTooltipItem(
                         '${spot.y.toStringAsFixed(1)}%',
                         TextStyle(
-                          color: spot.bar.color,
+                          color: spot.bar.gradient?.colors.first ??
+                              spot.bar.color ??
+                              Colors.white,
                           fontWeight: FontWeight.bold,
                         ),
                       );
@@ -302,9 +304,20 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                       AppTheme.accentBlue.withOpacity(0.8), 'Practical'),
               ],
               titlesData: FlTitlesData(
-                leftTitles: const AxisTitles(
-                    sideTitles:
-                        SideTitles(showTitles: true, reservedSize: 40)),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 40,
+                    interval: 25,
+                    getTitlesWidget: (value, meta) {
+                      if (value == meta.max) {
+                        return Container();
+                      }
+                      return Text('${value.toInt()}',
+                          style: const TextStyle(fontSize: 10));
+                    },
+                  ),
+                ),
                 bottomTitles: const AxisTitles(),
                 topTitles: const AxisTitles(),
                 rightTitles: const AxisTitles(),
@@ -327,7 +340,8 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
               _buildLegendItem("Theory", widget.subject.color),
             if (hasTheoryData && hasPracticalData) const SizedBox(width: 16),
             if (hasPracticalData)
-              _buildLegendItem("Practical", AppTheme.accentBlue.withOpacity(0.8)),
+              _buildLegendItem(
+                  "Practical", AppTheme.accentBlue.withOpacity(0.8)),
           ],
         )
       ],

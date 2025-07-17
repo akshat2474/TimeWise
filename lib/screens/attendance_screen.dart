@@ -60,6 +60,39 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             classInfo.timeSlot!,
           );
 
+    final List<Map<String, dynamic>> attendanceOptions = [
+      {
+        'label': 'Present',
+        'icon': Icons.check_circle_outline,
+        'color': theme.colorScheme.secondary,
+        'status': AttendanceStatus.present
+      },
+      {
+        'label': 'Absent',
+        'icon': Icons.cancel_outlined,
+        'color': theme.colorScheme.error,
+        'status': AttendanceStatus.absent
+      },
+      {
+        'label': 'Holiday',
+        'icon': Icons.beach_access_outlined,
+        'color': Colors.grey,
+        'status': AttendanceStatus.holiday
+      },
+      {
+        'label': 'Mass Bunk',
+        'icon': Icons.group_off_outlined,
+        'color': Colors.orangeAccent,
+        'status': AttendanceStatus.massBunk
+      },
+      {
+        'label': 'Teacher Absent',
+        'icon': Icons.person_off_outlined,
+        'color': AppTheme.primary,
+        'status': AttendanceStatus.teacherAbsent
+      },
+    ];
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -152,58 +185,35 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 style: theme.textTheme.titleMedium,
               ),
               const SizedBox(height: 16),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                alignment: WrapAlignment.center,
-                children: [
-                  _buildAttendanceOption(
-                    icon: Icons.check_circle_outline,
-                    label: 'Present',
-                    color: theme.colorScheme.secondary,
+              GridView.builder(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: (MediaQuery.of(context).size.width / 2) /
+                      60, // Adjust aspect ratio for uniform height
+                ),
+                itemCount: attendanceOptions.length,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemBuilder: (context, index) {
+                  final option = attendanceOptions[index];
+                  Widget button = _buildAttendanceOption(
+                    icon: option['icon'],
+                    label: option['label'],
+                    color: option['color'],
                     onTap: () {
-                      _markAttendance(classInfo, AttendanceStatus.present);
+                      _markAttendance(classInfo, option['status']);
                       Navigator.pop(context);
                     },
-                  ),
-                  _buildAttendanceOption(
-                    icon: Icons.cancel_outlined,
-                    label: 'Absent',
-                    color: theme.colorScheme.error,
-                    onTap: () {
-                      _markAttendance(classInfo, AttendanceStatus.absent);
-                      Navigator.pop(context);
-                    },
-                  ),
-                  _buildAttendanceOption(
-                    icon: Icons.beach_access_outlined,
-                    label: 'Holiday',
-                    color: Colors.grey,
-                    onTap: () {
-                      _markAttendance(classInfo, AttendanceStatus.holiday);
-                      Navigator.pop(context);
-                    },
-                  ),
-                  _buildAttendanceOption(
-                    icon: Icons.group_off_outlined,
-                    label: 'Mass Bunk',
-                    color: Colors.orangeAccent,
-                    onTap: () {
-                      _markAttendance(classInfo, AttendanceStatus.massBunk);
-                      Navigator.pop(context);
-                    },
-                  ),
-                  _buildAttendanceOption(
-                    icon: Icons.person_off_outlined,
-                    label: 'Teacher Absent',
-                    color: AppTheme.primary,
-                    onTap: () {
-                      _markAttendance(
-                          classInfo, AttendanceStatus.teacherAbsent);
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
+                  );
+
+                  if (index == attendanceOptions.length - 1 &&
+                      attendanceOptions.length.isOdd) {
+                    return GridTile(child: button);
+                  }
+                  return button;
+                },
               ),
             ],
           ),
@@ -238,14 +248,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: color.withOpacity(0.3), width: 1.5),
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, color: color, size: 20),
             const SizedBox(width: 8),
