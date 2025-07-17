@@ -660,13 +660,14 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
     return Column(
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Subjects (${_subjects.length}/$_subjectCount)',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontSize: 18,
-                fontWeight: FontWeight.w400,
+            Expanded(
+              child: Text(
+                'Subjects (${_subjects.length}/$_subjectCount)',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w400,
+                ),
               ),
             ),
             Row(

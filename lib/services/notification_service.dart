@@ -87,7 +87,7 @@ class NotificationService {
         ][weekday];
 
         await flutterLocalNotificationsPlugin.zonedSchedule(
-          weekday, 
+          weekday,
           'TimeWise Reminder',
           'Don\'t forget to mark your attendance for today!',
           scheduledDate,
@@ -107,16 +107,11 @@ class NotificationService {
   }
 
   tz.TZDateTime _nextInstanceOfSixPM(int targetWeekday) {
-    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
-    tz.TZDateTime scheduledDate =
-        tz.TZDateTime(tz.local, now.year, now.month, now.day, 18); // 6 PM
+    tz.TZDateTime scheduledDate = tz.TZDateTime.now(tz.local);
+    scheduledDate = tz.TZDateTime(tz.local, scheduledDate.year, scheduledDate.month, scheduledDate.day, 18);
 
-    while (scheduledDate.weekday != targetWeekday) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
-    }
-
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 7));
+    while (scheduledDate.weekday != targetWeekday || scheduledDate.isBefore(tz.TZDateTime.now(tz.local))) {
+        scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
 
     return scheduledDate;
@@ -178,7 +173,7 @@ class NotificationService {
     final testTime = now.add(const Duration(minutes: 1));
 
     await flutterLocalNotificationsPlugin.zonedSchedule(
-      999, 
+      999,
       'Test Notification',
       'This should appear in 1 minute.',
       testTime,
