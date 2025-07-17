@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -201,7 +203,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     label: 'Teacher Absent',
                     color: AppTheme.primary,
                     onTap: () {
-                      _markAttendance(classInfo, AttendanceStatus.teacherAbsent);
+                      _markAttendance(
+                          classInfo, AttendanceStatus.teacherAbsent);
                       Navigator.pop(context);
                     },
                   ),
@@ -372,7 +375,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     firstDay: DateTime.utc(2020),
                     lastDay: DateTime.utc(2030),
                     calendarFormat: _calendarFormat,
-                    selectedDayPredicate: (day) => isSameDay(_selectedDate, day),
+                    selectedDayPredicate: (day) =>
+                        isSameDay(_selectedDate, day),
                     onDaySelected: (selectedDay, focusedDay) {
                       setState(() {
                         _selectedDate = selectedDay;
@@ -432,14 +436,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         if (records.isEmpty) return null;
 
                         Color markerColor;
-                        if (records.any(
-                            (r) => r.status == AttendanceStatus.absent)) {
+                        if (records
+                            .any((r) => r.status == AttendanceStatus.absent)) {
                           markerColor = theme.colorScheme.error;
                         } else if (records.any(
                             (r) => r.status == AttendanceStatus.massBunk)) {
                           markerColor = Colors.orangeAccent;
-                        } else if (records.any(
-                            (r) => r.status == AttendanceStatus.present)) {
+                        } else if (records
+                            .any((r) => r.status == AttendanceStatus.present)) {
                           markerColor = theme.colorScheme.secondary;
                         } else {
                           markerColor = Colors.grey;
@@ -604,8 +608,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     color: _getStatusColor(status), size: 20),
               )
             else
-              Icon(Icons.touch_app_outlined,
-                  color: Colors.grey[600], size: 24),
+              Icon(Icons.touch_app_outlined, color: Colors.grey[600], size: 24),
           ],
         ),
       ),
@@ -634,6 +637,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       title: 'Theory',
                       data: theoryData,
                       color: AppTheme.accentBlue,
+                      percentageWithMassBunk: theoryData.percentage,
                     ),
                   ),
                 if (subject.hasPractical &&
@@ -643,6 +647,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       title: 'Practical',
                       data: practicalData,
                       color: theme.colorScheme.secondary,
+                      percentageWithMassBunk: practicalData.percentage,
                     ),
                   ),
               ],
@@ -669,9 +674,15 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   Widget _buildRadialGauge(
       {required String title,
       required AttendanceSummary data,
-      required Color color}) {
+      required Color color,
+      double? percentageWithMassBunk}) {
     final theme = Theme.of(context);
     final percentage = data.percentage / 100;
+    final percentageExclMassBunk = data.percentageExclMassBunk;
+
+    final bool hasMassBunk = percentageWithMassBunk != null &&
+        (percentage * 100).toStringAsFixed(1) !=
+            percentageExclMassBunk.toStringAsFixed(1);
 
     return Column(
       children: [
@@ -683,8 +694,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           percent: percentage.isNaN ? 0 : percentage.clamp(0.0, 1.0),
           center: Text(
             "${data.percentage.toStringAsFixed(1)}%",
-            style: theme.textTheme.titleLarge
-                ?.copyWith(color: _getPercentageColor(data.percentage)),
+            style: theme.textTheme.headlineSmall?.copyWith(
+                color: _getPercentageColor(data.percentage),
+                fontWeight: FontWeight.bold),
           ),
           circularStrokeCap: CircularStrokeCap.round,
           progressColor: _getPercentageColor(data.percentage),
@@ -701,6 +713,28 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           style: theme.textTheme.bodyMedium,
         ),
         const SizedBox(height: 4),
+        if (hasMassBunk)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4.0),
+            child: RichText(
+              text: TextSpan(
+                style: theme.textTheme.bodySmall,
+                children: [
+                  const TextSpan(
+                    text: 'w/o bunks: ',
+                    style: TextStyle(color: Colors.orangeAccent),
+                  ),
+                  TextSpan(
+                    text: '${percentageExclMassBunk.toStringAsFixed(1)}%',
+                    style: TextStyle(
+                      color: _getPercentageColor(percentageExclMassBunk),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         if (data.hoursCanMiss > 0)
           Text(
             'Can miss: ${data.hoursCanMiss.toStringAsFixed(1)}h',
