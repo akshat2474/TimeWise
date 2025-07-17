@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'package:intl/intl.dart'; 
+import 'package:intl/intl.dart';
 import 'subject_model.dart';
 
 enum ClassType { theory, practical }
@@ -495,7 +495,7 @@ class TimetableModel extends ChangeNotifier {
       });
     });
 
-    if (totalHeld == 0) return 100.0; 
+    if (totalHeld == 0) return 100.0;
     return (totalAttended / totalHeld) * 100;
   }
 
@@ -507,7 +507,7 @@ class TimetableModel extends ChangeNotifier {
     if (!_days.contains(todayDayName)) {
       return _findFirstClassFromDay(_days.first);
     }
-    
+
     final todayIndex = _days.indexOf(todayDayName);
 
     double timeOfDayToMinutes(TimeOfDay time) => time.hour * 60.0 + time.minute;
@@ -515,7 +515,7 @@ class TimetableModel extends ChangeNotifier {
 
     final todaysClasses = getClassesForDay(todayDayName);
     for (final classInfo in todaysClasses) {
-      final startTimeString = classInfo.timeSlot!.split('-')[0]; 
+      final startTimeString = classInfo.timeSlot!.split('-')[0];
       final timeParts = startTimeString.split(':');
       final classStartTime = TimeOfDay(hour: int.parse(timeParts[0]), minute: int.parse(timeParts[1]));
 
@@ -529,7 +529,7 @@ class TimetableModel extends ChangeNotifier {
       final nextDayName = _days[nextDayIndex];
       final nextDayClass = _findFirstClassFromDay(nextDayName);
       if (nextDayClass != null) {
-        return nextDayClass; 
+        return nextDayClass;
       }
     }
 
@@ -539,9 +539,59 @@ class TimetableModel extends ChangeNotifier {
   ClassInfo? _findFirstClassFromDay(String dayName) {
     final classes = getClassesForDay(dayName);
     if (classes.isNotEmpty) {
-      
       return classes.first;
     }
     return null;
+  }
+
+  Map<DateTime, Color> getCalendarHeatmapData() {
+    final Map<DateTime, List<AttendanceStatus>> dailyStatus = {};
+
+    for (var record in _attendanceRecords) {
+      final date = DateTime(record.date.year, record.date.month, record.date.day);
+      dailyStatus.putIfAbsent(date, () => []).add(record.status);
+    }
+
+    final Map<DateTime, Color> heatmapData = {};
+    dailyStatus.forEach((date, statuses) {
+      if (statuses.every((s) => s == AttendanceStatus.present || s == AttendanceStatus.teacherAbsent)) {
+        heatmapData[date] = Colors.green;
+      } else if (statuses.every((s) => s == AttendanceStatus.absent || s == AttendanceStatus.massBunk)) {
+        heatmapData[date] = Colors.red;
+      } else {
+        heatmapData[date] = Colors.yellow;
+      }
+    });
+
+    return heatmapData;
+  }
+
+  void bulkMarkDay(DateTime date, AttendanceStatus status) {
+    final dayName = DateFormat('EEEE').format(date);
+    final classesForDay = getClassesForDay(dayName);
+
+    for (var classInfo in classesForDay) {
+      markAttendance(classInfo.subject.name, classInfo.isTheory ? 'theory' : 'practical', status, date, classInfo.timeSlot!, classInfo.duration.toDouble());
+    }
+  }
+
+  double calculateWhatIf(String subjectName, String classType, int missedClasses) {
+    final summary = _attendanceData[subjectName]![classType]!;
+    final futureTotalHours = summary.totalScheduledHours + missedClasses;
+    final futureAttendedHours = summary.totalHoursAttended;
+
+    if (futureTotalHours == 0) return 100.0;
+    return (futureAttendedHours / futureTotalHours) * 100;
+  }
+
+  String getAttendanceAsCsv() {
+    List<String> rows = [];
+    rows.add('Date,Subject,Class Type,Status,Hours');
+
+    for (var record in _attendanceRecords) {
+      rows.add('${DateFormat('yyyy-MM-dd').format(record.date)},${record.subjectName},${record.classType},${record.status.name},${record.hours}');
+    }
+
+    return rows.join('\n');
   }
 }

@@ -21,6 +21,11 @@ dependencies:
   percent_indicator: ^4.2.5
   intl: ^0.20.2
   google_fonts: ^6.2.1
+  flutter_colorpicker: ^1.0.3
+  fl_chart: ^0.63.0
+  csv: ^5.0.1
+  path_provider: ^2.0.15
+  share_plus: ^7.0.2
 
 dev_dependencies:
   flutter_test:
@@ -37,4 +42,3 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icons/timewise_icon.png
-

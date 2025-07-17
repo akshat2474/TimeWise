@@ -8,6 +8,7 @@ import 'package:timewise_dtu/theme/app_theme.dart';
 import 'attendance_screen.dart';
 import '../models/timetable_model.dart';
 import 'subject_setup_screen.dart';
+import 'package:percent_indicator/circular_percent_indicator.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -176,7 +177,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildDashboardSummary(BuildContext context, TimetableModel model) {
     final theme = Theme.of(context);
-    final nextClass = model.getNextClass();
     final overallAttendance = model.getOverallAttendancePercentage();
 
     return Column(
@@ -184,60 +184,35 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         Text("Dashboard", style: theme.textTheme.titleLarge),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _buildStyledCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Next Class", style: theme.textTheme.titleMedium),
-                    const SizedBox(height: 8),
-                    if (nextClass != null) ...[
-                      Text(
-                        nextClass.subject.name,
-                        style: theme.textTheme.bodyLarge
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        nextClass.timeSlot ?? 'N/A',
-                        style: theme.textTheme.bodyMedium
-                            ?.copyWith(color: Colors.white70),
-                      ),
-                    ] else
-                      Text("No more classes!",
-                          style: theme.textTheme.bodyMedium),
-                  ],
+        _buildStyledCard(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularPercentIndicator(
+                radius: 60.0,
+                lineWidth: 8.0,
+                percent: overallAttendance / 100,
+                center: Text(
+                  "${overallAttendance.toStringAsFixed(1)}%",
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: overallAttendance >= 75 ? AppTheme.secondary : AppTheme.error,
+                  ),
                 ),
+                progressColor: overallAttendance >= 75 ? AppTheme.secondary : AppTheme.error,
+                backgroundColor: theme.colorScheme.surface,
+                circularStrokeCap: CircularStrokeCap.round,
               ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildStyledCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Attendance", style: theme.textTheme.titleMedium),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${overallAttendance.toStringAsFixed(1)}%',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        color: overallAttendance >= 75
-                            ? AppTheme.secondary
-                            : AppTheme.error,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text("Overall",
-                        style: theme.textTheme.bodyMedium
-                            ?.copyWith(color: Colors.white70)),
-                  ],
-                ),
-              ),
-            ),
-          ],
+              const SizedBox(width: 24),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Overall Attendance", style: theme.textTheme.titleMedium),
+                  const SizedBox(height: 4),
+                  Text("Keep it above 75%!", style: theme.textTheme.bodyMedium),
+                ],
+              )
+            ],
+          ),
         ),
       ],
     );
@@ -272,7 +247,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemBuilder: (context, index) {
                     final classInfo = classesToday[index];
                     final timeSlotParts =
-                        classInfo.timeSlot?.split(' - ') ?? [];
+                        classInfo.timeSlot?.split('-') ?? [];
                     TimeOfDay? startTime;
                     TimeOfDay? endTime;
 
@@ -308,9 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           classInfo.isTheory
                               ? Icons.book_outlined
                               : Icons.science_outlined,
-                          color: classInfo.isTheory
-                              ? AppTheme.accentBlue
-                              : theme.colorScheme.secondary,
+                          color: classInfo.subject.color,
                           size: 22,
                         ),
                         const SizedBox(width: 16),
@@ -339,13 +312,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          Text(
-                            classInfo.timeSlot ?? 'N/A',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.textTheme.bodyMedium?.color
-                                  ?.withOpacity(0.8),
-                            ),
-                          ),
                         ] else if (isPast) ...[
                           Text(
                             "PAST",
@@ -354,15 +320,15 @@ class _HomeScreenState extends State<HomeScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ] else ...[
-                          Text(
-                            classInfo.timeSlot ?? 'N/A',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.textTheme.bodyMedium?.color
-                                  ?.withOpacity(0.8),
-                            ),
+                          const SizedBox(width: 12),
+                        ],
+                        Text(
+                          classInfo.timeSlot ?? 'N/A',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.textTheme.bodyMedium?.color
+                                ?.withOpacity(isPast ? 0.5 : 0.8),
                           ),
-                        ]
+                        ),
                       ],
                     );
                   },

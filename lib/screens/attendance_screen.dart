@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:timewise_dtu/models/subject_model.dart';
+import 'package:timewise_dtu/screens/subject_details_screen.dart';
+import 'package:timewise_dtu/services/export_service.dart';
 import 'timetable_grid_screen.dart';
 import '../models/timetable_model.dart';
 import '../theme/app_theme.dart';
@@ -20,6 +22,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   late DateTime _selectedDate;
   late DateTime _focusedDate;
   CalendarFormat _calendarFormat = CalendarFormat.week;
+  final ExportService _exportService = ExportService();
 
   @override
   void initState() {
@@ -82,19 +85,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: (classInfo.isTheory
-                              ? AppTheme.accentBlue
-                              : theme.colorScheme.secondary)
-                          .withOpacity(0.15),
+                      color: (classInfo.subject.color).withOpacity(0.15),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
                       classInfo.isTheory
                           ? Icons.book_outlined
                           : Icons.science_outlined,
-                      color: classInfo.isTheory
-                          ? AppTheme.accentBlue
-                          : theme.colorScheme.secondary,
+                      color: classInfo.subject.color,
                       size: 24,
                     ),
                   ),
@@ -348,6 +346,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         final dayName = _getDayName(_selectedDate);
         final classesForSelectedDay =
             _isWeekday(_selectedDate) ? model.getClassesForDay(dayName) : [];
+        final heatmapData = model.getCalendarHeatmapData();
+
         return Scaffold(
           body: CustomScrollView(
             slivers: [
@@ -356,6 +356,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 pinned: true,
                 floating: true,
                 actions: [
+                  IconButton(
+                    onPressed: () => _exportService.exportAttendance(model.attendanceRecords),
+                    icon: const Icon(Icons.share),
+                    tooltip: 'Export Attendance',
+                  ),
                   IconButton(
                     onPressed: _showEditOptions,
                     icon: const Icon(Icons.edit_calendar_outlined),
@@ -420,44 +425,18 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         shape: BoxShape.circle,
                       ),
                     ),
-                    eventLoader: (day) {
-                      final recordsForDay = model.attendanceRecords
-                          .where((record) => isSameDay(record.date, day));
-                      return recordsForDay.isNotEmpty ? [1] : [];
-                    },
                     calendarBuilders: CalendarBuilders(
                       markerBuilder: (context, day, events) {
-                        if (events.isEmpty) return null;
-
-                        final records = model.attendanceRecords
-                            .where((record) => isSameDay(record.date, day))
-                            .toList();
-
-                        if (records.isEmpty) return null;
-
-                        Color markerColor;
-                        if (records
-                            .any((r) => r.status == AttendanceStatus.absent)) {
-                          markerColor = theme.colorScheme.error;
-                        } else if (records.any(
-                            (r) => r.status == AttendanceStatus.massBunk)) {
-                          markerColor = Colors.orangeAccent;
-                        } else if (records
-                            .any((r) => r.status == AttendanceStatus.present)) {
-                          markerColor = theme.colorScheme.secondary;
-                        } else {
-                          markerColor = Colors.grey;
+                        final date = DateTime(day.year, day.month, day.day);
+                        if (heatmapData.containsKey(date)) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: heatmapData[date]!.withOpacity(0.5),
+                              shape: BoxShape.circle,
+                            ),
+                          );
                         }
-
-                        return Container(
-                          width: 7,
-                          height: 7,
-                          margin: const EdgeInsets.symmetric(horizontal: 1.5),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: markerColor,
-                          ),
-                        );
+                        return null;
                       },
                     ),
                   ),
@@ -466,9 +445,30 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Text(
-                    'Classes for $dayName',
-                    style: theme.textTheme.titleLarge,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Classes for $dayName',
+                        style: theme.textTheme.titleLarge,
+                      ),
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () => model.bulkMarkDay(_selectedDate, AttendanceStatus.present),
+                            icon: const Icon(Icons.check_circle),
+                            tooltip: "Mark All Present",
+                            color: AppTheme.secondary,
+                          ),
+                          IconButton(
+                            onPressed: () => model.bulkMarkDay(_selectedDate, AttendanceStatus.holiday),
+                            icon: const Icon(Icons.beach_access),
+                            tooltip: "Mark All as Holiday",
+                            color: Colors.grey,
+                          )
+                        ],
+                      )
+                    ],
                   ),
                 ),
               ),
@@ -558,8 +558,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   Widget _buildClassCard(ClassInfo classInfo, AttendanceStatus? status) {
     final theme = Theme.of(context);
-    final cardColor =
-        classInfo.isTheory ? AppTheme.accentBlue : theme.colorScheme.secondary;
+    final cardColor = classInfo.subject.color;
 
     return GestureDetector(
       onTap: () => _showAttendanceDialog(classInfo),
@@ -618,54 +617,57 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   Widget _buildSummaryCard(Subject subject, AttendanceSummary theoryData,
       AttendanceSummary practicalData) {
     final theme = Theme.of(context);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(subject.name, style: theme.textTheme.titleLarge),
-            const SizedBox(height: 4),
-            Text(subject.creditDescription, style: theme.textTheme.bodyMedium),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                if (theoryData.totalScheduledHours > 0)
-                  Expanded(
-                    child: _buildRadialGauge(
-                      title: 'Theory',
-                      data: theoryData,
-                      color: AppTheme.accentBlue,
-                      percentageWithMassBunk: theoryData.percentage,
+    return GestureDetector(
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SubjectDetailsScreen(subject: subject))),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(subject.name, style: theme.textTheme.titleLarge),
+              const SizedBox(height: 4),
+              Text(subject.creditDescription, style: theme.textTheme.bodyMedium),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  if (theoryData.totalScheduledHours > 0)
+                    Expanded(
+                      child: _buildRadialGauge(
+                        title: 'Theory',
+                        data: theoryData,
+                        color: subject.color,
+                        percentageWithMassBunk: theoryData.percentage,
+                      ),
                     ),
-                  ),
-                if (subject.hasPractical &&
-                    practicalData.totalScheduledHours > 0)
-                  Expanded(
-                    child: _buildRadialGauge(
-                      title: 'Practical',
-                      data: practicalData,
-                      color: theme.colorScheme.secondary,
-                      percentageWithMassBunk: practicalData.percentage,
+                  if (subject.hasPractical &&
+                      practicalData.totalScheduledHours > 0)
+                    Expanded(
+                      child: _buildRadialGauge(
+                        title: 'Practical',
+                        data: practicalData,
+                        color: subject.color.withGreen(200),
+                        percentageWithMassBunk: practicalData.percentage,
+                      ),
                     ),
-                  ),
-              ],
-            ),
-            if (theoryData.totalScheduledHours == 0 &&
-                (!subject.hasPractical ||
-                    practicalData.totalScheduledHours == 0))
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24.0),
-                child: Center(
-                  child: Text(
-                    'No attendance data yet',
-                    style: theme.textTheme.bodyMedium
-                        ?.copyWith(fontStyle: FontStyle.italic),
+                ],
+              ),
+              if (theoryData.totalScheduledHours == 0 &&
+                  (!subject.hasPractical ||
+                      practicalData.totalScheduledHours == 0))
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24.0),
+                  child: Center(
+                    child: Text(
+                      'No attendance data yet',
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(fontStyle: FontStyle.italic),
+                    ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );

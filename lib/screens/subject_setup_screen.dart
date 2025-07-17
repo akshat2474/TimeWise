@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:provider/provider.dart';
 import 'package:timewise_dtu/theme/app_theme.dart';
 import 'timetable_grid_screen.dart';
@@ -76,11 +77,12 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
   }
 
   void _showAddSubjectDialog([int? index]) {
-    Theme.of(context);
+    final theme = Theme.of(context);
     final nameController = TextEditingController();
     CreditType creditType = CreditType.fourCredit;
     SubjectType subjectType = SubjectType.theory;
     bool hasPractical = false;
+    Color color = AppTheme.accentBlue;
 
     if (index != null && index < _subjects.length) {
       final subject = _subjects[index];
@@ -88,6 +90,7 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
       creditType = subject.creditType;
       subjectType = subject.subjectType;
       hasPractical = subject.hasPractical;
+      color = subject.color;
     }
 
     showDialog(
@@ -124,6 +127,24 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                GestureDetector(
+                  onTap: () => _pickColor(context, color, (newColor) => setDialogState(() => color = newColor)),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[800],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Text('Subject Color', style: theme.textTheme.bodyLarge),
+                        const Spacer(),
+                        Container(width: 24, height: 24, color: color),
+                      ],
                     ),
                   ),
                 ),
@@ -409,6 +430,7 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                       hasPractical: hasPractical,
                       creditType: creditType,
                       subjectType: subjectType,
+                      color: color,
                     );
 
                     if (index != null) {
@@ -438,6 +460,28 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _pickColor(BuildContext context, Color initialColor, Function(Color) onColorChanged) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Pick a color'),
+        content: SingleChildScrollView(
+          child: ColorPicker(
+            pickerColor: initialColor,
+            onColorChanged: onColorChanged,
+            pickerAreaHeightPercent: 0.8,
+          ),
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Got it'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
       ),
     );
   }
@@ -711,7 +755,7 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                     color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: theme.colorScheme.surfaceVariant,
+                      color: subject.color.withOpacity(0.5),
                       width: 1,
                     ),
                   ),

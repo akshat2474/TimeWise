@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 enum SubjectType { theory, practical, elective }
@@ -10,6 +11,7 @@ class Subject {
   final bool hasPractical;
   final CreditType creditType;
   final SubjectType subjectType;
+  Color color;
 
   Subject({
     String? id,
@@ -17,7 +19,9 @@ class Subject {
     required this.hasPractical,
     required this.creditType,
     required this.subjectType,
+    this.color = Colors.blue,
   }) : id = id ?? const Uuid().v4();
+
   int get totalTheoryHours {
     if (creditType == CreditType.fourCredit) {
       return hasPractical ? 42 : 42;
@@ -63,6 +67,7 @@ class Subject {
       'hasPractical': hasPractical,
       'creditType': creditType.name,
       'subjectType': subjectType.name,
+      'color': color.value,
     };
   }
 
@@ -77,16 +82,18 @@ class Subject {
       subjectType: SubjectType.values.firstWhere(
         (e) => e.name == json['subjectType'],
       ),
+      color: Color(json['color']),
     );
   }
 
-  Subject copyWith({String? name}) {
+  Subject copyWith({String? name, Color? color}) {
     return Subject(
       id: id,
       name: name ?? this.name,
       hasPractical: hasPractical,
       creditType: creditType,
       subjectType: subjectType,
+      color: color ?? this.color,
     );
   }
 }
