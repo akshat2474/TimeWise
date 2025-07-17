@@ -8,7 +8,7 @@ import 'package:timewise_dtu/theme/app_theme.dart';
 import 'attendance_screen.dart';
 import '../models/timetable_model.dart';
 import 'subject_setup_screen.dart';
-import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'dart:async';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,6 +18,22 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Rebuild the screen every minute to update "live" status and next class
+    _timer =
+        Timer.periodic(const Duration(minutes: 1), (Timer t) => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final model = context.watch<TimetableModel>();
@@ -97,7 +113,8 @@ class _HomeScreenState extends State<HomeScreen> {
             NotificationService().scheduleTestNotification();
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Test notification scheduled for 1 minute from now.'),
+                content:
+                    Text('Test notification scheduled for 1 minute from now.'),
                 backgroundColor: Colors.green,
               ),
             );
@@ -126,8 +143,10 @@ class _HomeScreenState extends State<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
-        _buildDashboardSummary(context, model),
-        const SizedBox(height: 32),
+        _buildNextClassCard(model),
+        const SizedBox(height: 24),
+        _buildSubjectsAtRisk(model),
+        const SizedBox(height: 24),
         _buildTodaysSchedule(context, model),
         const SizedBox(height: 24),
       ],
@@ -175,45 +194,122 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildDashboardSummary(BuildContext context, TimetableModel model) {
+  Widget _buildNextClassCard(TimetableModel model) {
     final theme = Theme.of(context);
-    final overallAttendance = model.getOverallAttendancePercentage();
+    final nextClass = model.getNextClass();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("Dashboard", style: theme.textTheme.titleLarge),
+        Text("Up Next", style: theme.textTheme.titleLarge),
         const SizedBox(height: 12),
         _buildStyledCard(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularPercentIndicator(
-                radius: 60.0,
-                lineWidth: 8.0,
-                percent: overallAttendance / 100,
-                center: Text(
-                  "${overallAttendance.toStringAsFixed(1)}%",
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    color: overallAttendance >= 75 ? AppTheme.secondary : AppTheme.error,
+          child: nextClass == null
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.celebration_outlined,
+                          color: theme.colorScheme.secondary, size: 24),
+                      const SizedBox(width: 12),
+                      Text("You're free for now!",
+                          style: theme.textTheme.titleMedium),
+                    ],
                   ),
+                )
+              : Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: nextClass.subject.color.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        nextClass.isTheory
+                            ? Icons.book_outlined
+                            : Icons.science_outlined,
+                        color: nextClass.subject.color,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            nextClass.subject.name,
+                            style: theme.textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "${nextClass.timeSlot}",
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                                color:
+                                    theme.textTheme.bodyMedium?.color?.withOpacity(0.8)),
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                progressColor: overallAttendance >= 75 ? AppTheme.secondary : AppTheme.error,
-                backgroundColor: theme.colorScheme.surface,
-                circularStrokeCap: CircularStrokeCap.round,
-              ),
-              const SizedBox(width: 24),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Overall Attendance", style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 4),
-                  Text("Keep it above 75%!", style: theme.textTheme.bodyMedium),
-                ],
-              )
-            ],
-          ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildSubjectsAtRisk(TimetableModel model) {
+    final theme = Theme.of(context);
+    final subjectsAtRisk = model.getSubjectsAtRisk();
+
+    if (subjectsAtRisk.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Attendance Alert", style: theme.textTheme.titleLarge),
+        const SizedBox(height: 12),
+        _buildStyledCard(
+            child: Column(
+          children: subjectsAtRisk.map((subject) {
+            final data = model.getAttendanceDataForSubject(subject.name);
+            final theoryPercentage = data['theory']!.percentage;
+            final practicalPercentage = data['practical']!.percentage;
+            bool theoryAtRisk =
+                data['theory']!.totalScheduledHours > 0 && theoryPercentage < 75;
+            bool practicalAtRisk = subject.hasPractical &&
+                data['practical']!.totalScheduledHours > 0 &&
+                practicalPercentage < 75;
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded,
+                      color: theme.colorScheme.error, size: 22),
+                  const SizedBox(width: 12),
+                  Expanded(
+                      child: Text(subject.name, style: theme.textTheme.bodyLarge)),
+                  if (theoryAtRisk)
+                    Text(
+                      "Th: ${theoryPercentage.toStringAsFixed(1)}%",
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(color: theme.colorScheme.error),
+                    ),
+                  if (theoryAtRisk && practicalAtRisk) const SizedBox(width: 8),
+                  if (practicalAtRisk)
+                    Text(
+                      "Pr: ${practicalPercentage.toStringAsFixed(1)}%",
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(color: theme.colorScheme.error),
+                    ),
+                ],
+              ),
+            );
+          }).toList(),
+        )),
       ],
     );
   }
@@ -246,8 +342,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   itemBuilder: (context, index) {
                     final classInfo = classesToday[index];
-                    final timeSlotParts =
-                        classInfo.timeSlot?.split('-') ?? [];
+                    final timeSlotParts = classInfo.timeSlot?.split('-') ?? [];
                     TimeOfDay? startTime;
                     TimeOfDay? endTime;
 
@@ -264,8 +359,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       }
                     }
 
-                    final double nowInMinutes =
-                        now.hour * 60.0 + now.minute;
+                    final double nowInMinutes = now.hour * 60.0 + now.minute;
                     final double startInMinutes = startTime != null
                         ? startTime.hour * 60.0 + startTime.minute
                         : -1;

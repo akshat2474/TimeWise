@@ -482,23 +482,6 @@ class TimetableModel extends ChangeNotifier {
     return classes;
   }
 
-  double getOverallAttendancePercentage() {
-    if (_attendanceData.isEmpty) return 100.0;
-
-    double totalHeld = 0;
-    double totalAttended = 0;
-
-    _attendanceData.forEach((_, subjectSummary) {
-      subjectSummary.forEach((_, summary) {
-        totalHeld += summary.totalHoursHeld;
-        totalAttended += summary.totalHoursAttended;
-      });
-    });
-
-    if (totalHeld == 0) return 100.0;
-    return (totalAttended / totalHeld) * 100;
-  }
-
   ClassInfo? getNextClass() {
     final now = DateTime.now();
     final currentTime = TimeOfDay.fromDateTime(now);
@@ -577,21 +560,35 @@ class TimetableModel extends ChangeNotifier {
 
   double calculateWhatIf(String subjectName, String classType, int missedClasses) {
     final summary = _attendanceData[subjectName]![classType]!;
-    final futureTotalHours = summary.totalScheduledHours + missedClasses;
-    final futureAttendedHours = summary.totalHoursAttended;
+    final futureTotalHeld = summary.totalHoursHeld + missedClasses;
+    final futureAttended = summary.totalHoursAttended;
 
-    if (futureTotalHours == 0) return 100.0;
-    return (futureAttendedHours / futureTotalHours) * 100;
+    if (futureTotalHeld == 0) return 100.0;
+    return (futureAttended / futureTotalHeld) * 100;
   }
 
-  String getAttendanceAsCsv() {
-    List<String> rows = [];
-    rows.add('Date,Subject,Class Type,Status,Hours');
-
-    for (var record in _attendanceRecords) {
-      rows.add('${DateFormat('yyyy-MM-dd').format(record.date)},${record.subjectName},${record.classType},${record.status.name},${record.hours}');
+  List<Subject> getSubjectsAtRisk() {
+    List<Subject> atRisk = [];
+    for (var subject in _subjects) {
+      bool isAtRisk = false;
+      final subjectData = _attendanceData[subject.name];
+      if (subjectData != null) {
+        if (subjectData['theory']!.percentage < 75 && subjectData['theory']!.totalScheduledHours > 0) {
+          isAtRisk = true;
+        }
+        if (subject.hasPractical && subjectData['practical']!.percentage < 75 && subjectData['practical']!.totalScheduledHours > 0) {
+          isAtRisk = true;
+        }
+      }
+      if (isAtRisk) {
+        atRisk.add(subject);
+      }
     }
+    return atRisk;
+  }
 
-    return rows.join('\n');
+  Map<String, AttendanceSummary> getAttendanceDataForSubject(String subjectName) {
+    return _attendanceData[subjectName] ??
+        {'theory': AttendanceSummary(), 'practical': AttendanceSummary()};
   }
 }

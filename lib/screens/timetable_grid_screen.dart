@@ -536,12 +536,10 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
 
   Color _getBorderColor(ClassInfo? classInfo, bool isBlocked, bool isBlockedSlot) {
     final theme = Theme.of(context);
-    final practicalColor = Colors.teal[300]!;
-
     if (isBlockedSlot) {
       return theme.dividerColor.withOpacity(0.5);
     } else if (classInfo != null) {
-      return classInfo.isTheory ? AppTheme.accentBlue : practicalColor;
+      return classInfo.subject.color;
     } else {
       return theme.colorScheme.surfaceVariant;
     }

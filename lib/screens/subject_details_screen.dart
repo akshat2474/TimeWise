@@ -16,8 +16,18 @@ class SubjectDetailsScreen extends StatefulWidget {
 }
 
 class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
-  final TextEditingController _missedClassesController = TextEditingController();
+  final TextEditingController _missedClassesController =
+      TextEditingController();
   double? _whatIfPercentage;
+  String _whatIfType = 'theory';
+
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.subject.hasPractical) {
+      _whatIfType = 'theory';
+    }
+  }
 
   @override
   void dispose() {
@@ -32,7 +42,7 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
       setState(() {
         _whatIfPercentage = model.calculateWhatIf(
           widget.subject.name,
-          'theory', // Assuming theory for now, can be expanded
+          _whatIfType,
           missedClasses,
         );
       });
@@ -57,6 +67,8 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text('Attendance Trend', style: theme.textTheme.titleLarge),
+            const SizedBox(height: 12),
             _buildChart(context, records),
             const SizedBox(height: 24),
             _buildWhatIfCalculator(theme),
@@ -72,23 +84,53 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
 
   Widget _buildWhatIfCalculator(ThemeData theme) {
     return Card(
-      color: theme.colorScheme.surfaceVariant,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('\'What If\' Calculator', style: theme.textTheme.titleMedium),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
+            if (widget.subject.hasPractical) ...[
+              SizedBox(
+                width: double.infinity,
+                child: SegmentedButton<String>(
+                  style: SegmentedButton.styleFrom(
+                    selectedBackgroundColor:
+                        theme.colorScheme.primary.withOpacity(0.3),
+                    selectedForegroundColor: theme.colorScheme.primary,
+                  ),
+                  segments: const [
+                    ButtonSegment(
+                        value: 'theory',
+                        label: Text('Theory'),
+                        icon: Icon(Icons.book_outlined)),
+                    ButtonSegment(
+                        value: 'practical',
+                        label: Text('Practical'),
+                        icon: Icon(Icons.science_outlined)),
+                  ],
+                  selected: {_whatIfType},
+                  onSelectionChanged: (newSelection) {
+                    setState(() {
+                      _whatIfType = newSelection.first;
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
             Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: _missedClassesController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'If I miss \'X\' more classes...',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      hintText: 'If I miss \'X\' more classes...',
+                      border: const OutlineInputBorder(),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                     ),
                   ),
                 ),
@@ -101,11 +143,13 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
             ),
             if (_whatIfPercentage != null)
               Padding(
-                padding: const EdgeInsets.only(top: 12.0),
+                padding: const EdgeInsets.only(top: 16.0),
                 child: Text(
-                  'Your new attendance would be: ${_whatIfPercentage!.toStringAsFixed(2)}%',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: _whatIfPercentage! >= 75 ? AppTheme.secondary : AppTheme.error,
+                  'Your new attendance would be: ${_whatIfPercentage!.toStringAsFixed(1)}%',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: _whatIfPercentage! >= 75
+                        ? AppTheme.secondary
+                        : AppTheme.error,
                   ),
                 ),
               )
@@ -117,8 +161,14 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
 
   Widget _buildAttendanceLog(List<AttendanceRecord> records, ThemeData theme) {
     if (records.isEmpty) {
-      return const Center(child: Text('No attendance records yet.'));
+      return const Card(
+        child: Padding(
+          padding: EdgeInsets.all(24.0),
+          child: Center(child: Text('No attendance records yet.')),
+        ),
+      );
     }
+    records.sort((a, b) => b.date.compareTo(a.date));
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -128,12 +178,16 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
         return Card(
           margin: const EdgeInsets.only(bottom: 8),
           child: ListTile(
-            leading: Icon(_getStatusIcon(record.status), color: _getStatusColor(record.status)),
-            title: Text('${DateFormat.yMMMd().format(record.date)} - ${record.timeSlot}'),
-            subtitle: Text('${record.classType} (${record.hours}h)'),
+            leading: Icon(_getStatusIcon(record.status),
+                color: _getStatusColor(record.status)),
+            title: Text(
+                '${DateFormat.yMMMd().format(record.date)} - ${record.timeSlot}'),
+            subtitle: Text(
+                '${record.classType} (${record.hours.toStringAsFixed(0)}h)'),
             trailing: Text(
-              record.status.name,
-              style: theme.textTheme.bodyMedium?.copyWith(color: _getStatusColor(record.status)),
+              _getStatusText(record.status),
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(color: _getStatusColor(record.status)),
             ),
           ),
         );
@@ -141,68 +195,212 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
     );
   }
 
-  Widget _buildChart(BuildContext context, List<AttendanceRecord> records) {
-    // This is a simplified trend chart. A more accurate one would need more complex logic.
+  List<FlSpot> _generateSpotsForType(List<AttendanceRecord> allRecords) {
+    if (allRecords.isEmpty) return [];
+
+    allRecords.sort((a, b) => a.date.compareTo(b.date));
+
     List<FlSpot> spots = [];
-    if (records.isNotEmpty) {
-      records.sort((a, b) => a.date.compareTo(b.date));
-      double attended = 0;
-      double total = 0;
-      for (int i = 0; i < records.length; i++) {
-        final record = records[i];
-        if (record.status == AttendanceStatus.present) {
-          attended++;
-        }
-        if (record.status == AttendanceStatus.present || record.status == AttendanceStatus.absent) {
-          total++;
-        }
-        if (total > 0) {
-          spots.add(FlSpot(i.toDouble(), (attended / total) * 100));
-        }
+    double attendedHours = 0;
+    double heldHours = 0;
+    int dataPointIndex = 0;
+
+    for (final record in allRecords) {
+      bool changed = false;
+      if (record.status == AttendanceStatus.present ||
+          record.status == AttendanceStatus.teacherAbsent) {
+        attendedHours += record.hours;
+        heldHours += record.hours;
+        changed = true;
+      } else if (record.status == AttendanceStatus.absent ||
+          record.status == AttendanceStatus.massBunk) {
+        heldHours += record.hours;
+        changed = true;
+      }
+
+      if (changed && heldHours > 0) {
+        final percentage = (attendedHours / heldHours) * 100;
+        spots.add(FlSpot(dataPointIndex.toDouble(), percentage));
+        dataPointIndex++;
       }
     }
 
-    return SizedBox(
-      height: 200,
-      child: LineChart(
-        LineChartData(
-          lineBarsData: [
-            LineChartBarData(
-              spots: spots.isNotEmpty ? spots : [const FlSpot(0, 0)],
-              isCurved: true,
-              color: widget.subject.color,
-              barWidth: 3,
-              belowBarData: BarAreaData(
-                show: true,
-                color: widget.subject.color.withOpacity(0.2),
+    if (spots.isEmpty) {
+      return [const FlSpot(0, 100)];
+    }
+
+    return spots;
+  }
+
+  Widget _buildChart(BuildContext context, List<AttendanceRecord> records) {
+    final theoryRecords =
+        records.where((r) => r.classType == 'theory').toList();
+    final practicalRecords =
+        records.where((r) => r.classType == 'practical').toList();
+
+    final theorySpots = _generateSpotsForType(theoryRecords);
+    final practicalSpots = _generateSpotsForType(practicalRecords);
+
+    bool hasTheoryData = theorySpots.length > 1;
+    bool hasPracticalData =
+        widget.subject.hasPractical && practicalSpots.length > 1;
+
+    if (!hasTheoryData && !hasPracticalData) {
+      return const SizedBox(
+          height: 200,
+          child: Center(child: Text("Not enough data for a trend graph.")));
+    }
+
+    return Column(
+      children: [
+        SizedBox(
+          height: 200,
+          child: LineChart(
+            LineChartData(
+              minY: 0,
+              maxY: 105,
+              lineTouchData: LineTouchData(
+                touchTooltipData: LineTouchTooltipData(
+                  tooltipBgColor: Colors.black.withOpacity(0.8),
+                  getTooltipItems: (touchedSpots) {
+                    return touchedSpots.map((spot) {
+                      return LineTooltipItem(
+                        '${spot.y.toStringAsFixed(1)}%',
+                        TextStyle(
+                          color: spot.bar.color,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
+                    }).toList();
+                  },
+                ),
               ),
+              extraLinesData: ExtraLinesData(
+                horizontalLines: [
+                  HorizontalLine(
+                    y: 75,
+                    color: AppTheme.error.withOpacity(0.8),
+                    strokeWidth: 2,
+                    dashArray: [5, 5],
+                    label: HorizontalLineLabel(
+                      show: true,
+                      labelResolver: (_) => "75%",
+                      alignment: Alignment.topRight,
+                      style: TextStyle(
+                          color: AppTheme.error.withOpacity(0.8),
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+              lineBarsData: [
+                if (hasTheoryData)
+                  _getLineChartBarData(
+                      theorySpots, widget.subject.color, 'Theory'),
+                if (hasPracticalData)
+                  _getLineChartBarData(practicalSpots,
+                      AppTheme.accentBlue.withOpacity(0.8), 'Practical'),
+              ],
+              titlesData: FlTitlesData(
+                leftTitles: const AxisTitles(
+                    sideTitles:
+                        SideTitles(showTitles: true, reservedSize: 40)),
+                bottomTitles: const AxisTitles(),
+                topTitles: const AxisTitles(),
+                rightTitles: const AxisTitles(),
+              ),
+              gridData: FlGridData(
+                show: true,
+                drawVerticalLine: false,
+                getDrawingHorizontalLine: (value) =>
+                    const FlLine(color: Colors.white10, strokeWidth: 1),
+              ),
+              borderData: FlBorderData(show: false),
             ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (hasTheoryData)
+              _buildLegendItem("Theory", widget.subject.color),
+            if (hasTheoryData && hasPracticalData) const SizedBox(width: 16),
+            if (hasPracticalData)
+              _buildLegendItem("Practical", AppTheme.accentBlue.withOpacity(0.8)),
           ],
-          titlesData: const FlTitlesData(show: false),
-          gridData: const FlGridData(show: false),
-          borderData: FlBorderData(show: false),
+        )
+      ],
+    );
+  }
+
+  Widget _buildLegendItem(String title, Color color) {
+    return Row(
+      children: [
+        Container(width: 12, height: 12, color: color),
+        const SizedBox(width: 8),
+        Text(title),
+      ],
+    );
+  }
+
+  LineChartBarData _getLineChartBarData(
+      List<FlSpot> spots, Color color, String type) {
+    return LineChartBarData(
+      spots: spots,
+      isCurved: true,
+      gradient: LinearGradient(
+        colors: [color.withOpacity(0.5), color],
+      ),
+      barWidth: 4,
+      isStrokeCapRound: true,
+      dotData: const FlDotData(show: false),
+      belowBarData: BarAreaData(
+        show: true,
+        gradient: LinearGradient(
+          colors: [
+            color.withOpacity(0.3),
+            color.withOpacity(0.0),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
         ),
       ),
     );
   }
-  
+
+  String _getStatusText(AttendanceStatus status) {
+    switch (status) {
+      case AttendanceStatus.present:
+        return 'Present';
+      case AttendanceStatus.absent:
+        return 'Absent';
+      case AttendanceStatus.holiday:
+        return 'Holiday';
+      case AttendanceStatus.massBunk:
+        return 'Mass Bunk';
+      case AttendanceStatus.teacherAbsent:
+        return 'Teacher Absent';
+    }
+  }
+
   IconData _getStatusIcon(AttendanceStatus status) {
     switch (status) {
       case AttendanceStatus.present:
-        return Icons.check_circle;
+        return Icons.check_circle_outline;
       case AttendanceStatus.absent:
-        return Icons.cancel;
+        return Icons.cancel_outlined;
       case AttendanceStatus.holiday:
-        return Icons.beach_access;
+        return Icons.beach_access_outlined;
       case AttendanceStatus.massBunk:
-        return Icons.group_off;
+        return Icons.group_off_outlined;
       case AttendanceStatus.teacherAbsent:
-        return Icons.person_off;
+        return Icons.person_off_outlined;
     }
   }
-  
+
   Color _getStatusColor(AttendanceStatus status) {
-     switch (status) {
+    switch (status) {
       case AttendanceStatus.present:
         return AppTheme.secondary;
       case AttendanceStatus.absent:
