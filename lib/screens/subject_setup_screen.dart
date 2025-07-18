@@ -8,6 +8,7 @@ import 'package:timewise_dtu/theme/app_theme.dart';
 import 'timetable_grid_screen.dart';
 import '../models/subject_model.dart';
 import '../models/timetable_model.dart';
+import 'dart:math';
 
 class SubjectSetupScreen extends StatefulWidget {
   final List<Subject>? existingSubjects;
@@ -28,6 +29,28 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
   List<Subject> _subjects = [];
   int _subjectCount = 0;
   bool _showSubjectInputs = false;
+
+  // Predefined list of colors for automatic assignment
+  final List<Color> _colorPalette = [
+    Colors.blue,
+    Colors.red,
+    Colors.green,
+    Colors.orange,
+    Colors.purple,
+    Colors.teal,
+    Colors.pink,
+    Colors.indigo,
+    Colors.amber,
+    Colors.cyan,
+    Colors.brown,
+    Colors.lime,
+  ];
+
+  Color _getNextColor() {
+    // Assign a color from the palette, looping if necessary
+    return _colorPalette[_subjects.length % _colorPalette.length];
+  }
+
 
   @override
   void initState() {
@@ -82,7 +105,8 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
     CreditType creditType = CreditType.fourCredit;
     SubjectType subjectType = SubjectType.theory;
     bool hasPractical = false;
-    Color color = AppTheme.accentBlue;
+    // Assign a new color automatically if it's a new subject
+    Color color = (index != null) ? _subjects[index].color : _getNextColor();
 
     if (index != null && index < _subjects.length) {
       final subject = _subjects[index];
@@ -606,38 +630,36 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.isEditing
-                      ? 'Edit Your Subjects'
-                      : 'Configure Your Subjects',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w400,
-                    letterSpacing: 1,
-                  ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.isEditing
+                    ? 'Edit Your Subjects'
+                    : 'Configure Your Subjects',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w400,
+                  letterSpacing: 1,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  widget.isEditing
-                      ? 'Modify your subjects and credit information. Existing timetable and attendance data will be preserved.'
-                      : 'Set up your subjects with credit and practical information.',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontSize: 16,
-                    color: Colors.grey[400],
-                    fontWeight: FontWeight.w300,
-                  ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                widget.isEditing
+                    ? 'Modify your subjects and credit information. Existing timetable and attendance data will be preserved.'
+                    : 'Set up your subjects with credit and practical information.',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontSize: 16,
+                  color: Colors.grey[400],
+                  fontWeight: FontWeight.w300,
                 ),
-                const SizedBox(height: 40),
-                if (!_showSubjectInputs)
-                  _buildSubjectCountInput()
-                else
-                  _buildSubjectList(),
-              ],
-            ),
+              ),
+              const SizedBox(height: 40),
+              if (!_showSubjectInputs)
+                _buildSubjectCountInput()
+              else
+                Expanded(child: _buildSubjectList()),
+            ],
           ),
         ),
       ),
@@ -739,11 +761,8 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        LimitedBox(
-          maxHeight: MediaQuery.of(context).size.height * 0.5,
+        Expanded(
           child: ListView.builder(
-            shrinkWrap: true,
-            physics: const BouncingScrollPhysics(),
             itemCount: _subjects.length,
             itemBuilder: (context, index) {
               final subject = _subjects[index];

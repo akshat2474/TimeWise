@@ -336,7 +336,7 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                       theorySpots, widget.subject.color, 'Theory'),
                 if (hasPracticalData)
                   _getLineChartBarData(practicalSpots,
-                      AppTheme.accentBlue.withOpacity(0.8), 'Practical'),
+                      AppTheme.secondary, 'Practical'),
               ],
               titlesData: FlTitlesData(
                 leftTitles: AxisTitles(
@@ -376,7 +376,7 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
             if (hasTheoryData && hasPracticalData) const SizedBox(width: 16),
             if (hasPracticalData)
               _buildLegendItem(
-                  "Practical", AppTheme.accentBlue.withOpacity(0.8)),
+                  "Practical", AppTheme.secondary),
           ],
         )
       ],

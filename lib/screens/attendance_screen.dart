@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:timewise_dtu/models/subject_model.dart';
+import 'package:timewise_dtu/screens/home_screen.dart';
 import 'package:timewise_dtu/screens/subject_details_screen.dart';
 import 'package:timewise_dtu/services/export_service.dart';
 import 'timetable_grid_screen.dart';
@@ -31,7 +32,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     super.initState();
     _selectedDate = DateTime.now();
     _focusedDate = DateTime.now();
-    _confettiController = ConfettiController(duration: const Duration(seconds: 1));
+    _confettiController =
+        ConfettiController(duration: const Duration(seconds: 1));
   }
 
   @override
@@ -282,7 +284,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     _showStatusMessage(
         'Marked as ${_getStatusText(status)} for ${classInfo.subject.name}',
         _getStatusColor(status));
-    
+
     if (newlyUnlocked.isNotEmpty) {
       _confettiController.play();
       for (var achievementName in newlyUnlocked) {
@@ -412,20 +414,33 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         Consumer<TimetableModel>(
           builder: (context, model, child) {
             final dayName = _getDayName(_selectedDate);
-            final classesForSelectedDay =
-                _isWeekday(_selectedDate) ? model.getClassesForDay(dayName) : [];
+            final classesForSelectedDay = _isWeekday(_selectedDate)
+                ? model.getClassesForDay(dayName)
+                : [];
             final heatmapData = model.getCalendarHeatmapData();
 
             return Scaffold(
               body: CustomScrollView(
                 slivers: [
                   SliverAppBar(
+                    leading: IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const HomeScreen()),
+                          (Route<dynamic> route) => false,
+                        );
+                      },
+                    ),
                     title: const Text('Attendance Tracker'),
                     pinned: true,
                     floating: true,
                     actions: [
                       IconButton(
-                        onPressed: () => _exportService.exportAttendance(model.attendanceRecords),
+                        onPressed: () => _exportService
+                            .exportAttendance(model.attendanceRecords),
                         icon: const Icon(Icons.share),
                         tooltip: 'Export Attendance',
                       ),
@@ -442,7 +457,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       decoration: BoxDecoration(
                           color: theme.colorScheme.surface.withOpacity(0.8),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.white.withOpacity(0.1))),
+                          border:
+                              Border.all(color: Colors.white.withOpacity(0.1))),
                       child: TableCalendar(
                         focusedDay: _focusedDate,
                         firstDay: DateTime.utc(2020),
@@ -471,12 +487,15 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             formatButtonTextStyle:
                                 const TextStyle(color: Colors.white),
                             formatButtonDecoration: BoxDecoration(
-                                color: theme.colorScheme.primary.withOpacity(0.8),
+                                color:
+                                    theme.colorScheme.primary.withOpacity(0.8),
                                 borderRadius: BorderRadius.circular(8))),
                         calendarStyle: CalendarStyle(
                           defaultTextStyle: theme.textTheme.bodyMedium!,
-                          weekendTextStyle: theme.textTheme.bodyMedium!.copyWith(
-                              color: theme.colorScheme.primary.withOpacity(0.7)),
+                          weekendTextStyle: theme.textTheme.bodyMedium!
+                              .copyWith(
+                                  color: theme.colorScheme.primary
+                                      .withOpacity(0.7)),
                           selectedTextStyle: const TextStyle(
                               color: Colors.black, fontWeight: FontWeight.bold),
                           todayTextStyle: TextStyle(
@@ -530,7 +549,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 iconSize: 22,
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
-                                onPressed: () => model.bulkMarkDay(_selectedDate, AttendanceStatus.present),
+                                onPressed: () => model.bulkMarkDay(
+                                    _selectedDate, AttendanceStatus.present),
                                 icon: const Icon(Icons.check_circle),
                                 tooltip: "Mark All Present",
                                 color: AppTheme.secondary,
@@ -540,7 +560,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 iconSize: 22,
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
-                                onPressed: () => model.bulkMarkDay(_selectedDate, AttendanceStatus.absent),
+                                onPressed: () => model.bulkMarkDay(
+                                    _selectedDate, AttendanceStatus.absent),
                                 icon: const Icon(Icons.cancel),
                                 tooltip: "Mark All Absent",
                                 color: AppTheme.error,
@@ -550,7 +571,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 iconSize: 22,
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
-                                onPressed: () => model.bulkMarkDay(_selectedDate, AttendanceStatus.holiday),
+                                onPressed: () => model.bulkMarkDay(
+                                    _selectedDate, AttendanceStatus.holiday),
                                 icon: const Icon(Icons.beach_access),
                                 tooltip: "Mark All as Holiday",
                                 color: Colors.grey,
@@ -561,7 +583,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       ),
                     ),
                   ),
-                  if (!_isWeekday(_selectedDate) || classesForSelectedDay.isEmpty)
+                  if (!_isWeekday(_selectedDate) ||
+                      classesForSelectedDay.isEmpty)
                     SliverFillRemaining(
                       hasScrollBody: false,
                       child: Center(
@@ -614,8 +637,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             model.attendanceData[subject.name]!['practical']!;
                         return Padding(
                           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                          child:
-                              _buildSummaryCard(subject, theoryData, practicalData),
+                          child: _buildSummaryCard(
+                              subject, theoryData, practicalData),
                         );
                       },
                       childCount: model.subjects.length,
@@ -629,13 +652,17 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         ConfettiWidget(
           confettiController: _confettiController,
           blastDirectionality: BlastDirectionality.explosive,
-          shouldLoop: false, 
-          numberOfParticles: 20, 
+          shouldLoop: false,
+          numberOfParticles: 20,
           gravity: 0.1,
           emissionFrequency: 0.05,
           colors: const [
-            Colors.green, Colors.blue, Colors.pink, Colors.orange, Colors.purple
-          ], 
+            Colors.green,
+            Colors.blue,
+            Colors.pink,
+            Colors.orange,
+            Colors.purple
+          ],
         ),
       ],
     );
@@ -679,7 +706,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             Row(
               children: [
                 Icon(
-                  classInfo.isTheory ? Icons.book_outlined : Icons.science_outlined,
+                  classInfo.isTheory
+                      ? Icons.book_outlined
+                      : Icons.science_outlined,
                   color: cardColor,
                   size: 24,
                 ),
@@ -712,7 +741,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         color: _getStatusColor(status), size: 20),
                   )
                 else
-                  Icon(Icons.touch_app_outlined, color: Colors.grey[600], size: 24),
+                  Icon(Icons.touch_app_outlined,
+                      color: Colors.grey[600], size: 24),
               ],
             ),
             if (classInfo.notes != null && classInfo.notes!.isNotEmpty)
@@ -725,7 +755,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     Expanded(
                       child: Text(
                         classInfo.notes!,
-                        style: TextStyle(fontSize: 12, color: Colors.grey[400], fontStyle: FontStyle.italic),
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[400],
+                            fontStyle: FontStyle.italic),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -742,7 +775,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       AttendanceSummary practicalData) {
     final theme = Theme.of(context);
     return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SubjectDetailsScreen(subject: subject))),
+      onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => SubjectDetailsScreen(subject: subject))),
       child: Card(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -751,7 +787,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             children: [
               Text(subject.name, style: theme.textTheme.titleLarge),
               const SizedBox(height: 4),
-              Text(subject.creditDescription, style: theme.textTheme.bodyMedium),
+              Text(subject.creditDescription,
+                  style: theme.textTheme.bodyMedium),
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -771,7 +808,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       child: _buildRadialGauge(
                         title: 'Practical',
                         data: practicalData,
-                        color: subject.color.withGreen(200),
+                        color: AppTheme.secondary,
                         percentageWithMassBunk: practicalData.percentage,
                       ),
                     ),
