@@ -26,6 +26,7 @@ dependencies:
   csv: ^5.0.1
   path_provider: ^2.0.15
   share_plus: ^7.0.2
+  confetti: ^0.7.0
 
 dev_dependencies:
   flutter_test:
@@ -42,3 +43,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icons/timewise_icon.png
+

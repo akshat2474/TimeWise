@@ -3,12 +3,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:timewise_dtu/screens/achievements_screen.dart';
 import 'package:timewise_dtu/services/notification_service.dart';
 import 'package:timewise_dtu/theme/app_theme.dart';
 import 'attendance_screen.dart';
 import '../models/timetable_model.dart';
 import 'subject_setup_screen.dart';
 import 'dart:async';
+import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'dart:math';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,6 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    // Rebuild the screen periodically to update "live" status
     _timer =
         Timer.periodic(const Duration(seconds: 10), (Timer t) => setState(() {}));
   }
@@ -121,6 +127,13 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         if (hasExistingTimetable)
           IconButton(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AchievementsScreen())),
+            icon: const Icon(Icons.emoji_events_outlined),
+            tooltip: 'Achievements',
+            color: Colors.white,
+          ),
+        if (hasExistingTimetable)
+          IconButton(
             onPressed: () {
               Navigator.push(
                 context,
@@ -141,12 +154,81 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 16),
+        _buildOverallDashboard(model),
         const SizedBox(height: 24),
         _buildTodaysSchedule(context, model),
         const SizedBox(height: 24),
         _buildSubjectsAtRisk(model),
         const SizedBox(height: 24),
       ],
+    );
+  }
+
+  Widget _buildOverallDashboard(TimetableModel model) {
+    final theme = Theme.of(context);
+    final overallSummary = model.getOverallAttendanceSummary();
+    final overallPercentage = overallSummary.percentage;
+
+    return _buildStyledCard(
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Row(
+              children: [
+                CircularPercentIndicator(
+                  radius: 40.0,
+                  lineWidth: 8.0,
+                  percent: (overallPercentage / 100).clamp(0.0, 1.0),
+                  center: Text(
+                    "${overallPercentage.toStringAsFixed(0)}%",
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: _getPercentageColor(overallPercentage),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  circularStrokeCap: CircularStrokeCap.round,
+                  progressColor: _getPercentageColor(overallPercentage),
+                  backgroundColor: theme.colorScheme.surfaceVariant,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Overall", style: theme.textTheme.titleMedium),
+                      const SizedBox(height: 4),
+                       Text(
+                        '${overallSummary.totalHoursAttended.toStringAsFixed(1)} / ${overallSummary.totalHoursHeld.toStringAsFixed(1)}h',
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Column(
+              children: [
+                 Icon(
+                  Icons.local_fire_department_rounded,
+                  color: Colors.orangeAccent,
+                  size: 28,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "${model.attendanceStreak} Day${model.attendanceStreak == 1 ? '' : 's'}",
+                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                Text("Streak", style: theme.textTheme.bodySmall),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -434,5 +516,11 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: child,
     );
+  }
+
+  Color _getPercentageColor(double percentage) {
+    if (percentage >= 75) return AppTheme.secondary;
+    if (percentage >= 60) return Colors.orangeAccent;
+    return AppTheme.error;
   }
 }

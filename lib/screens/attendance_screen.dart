@@ -10,6 +10,7 @@ import 'package:timewise_dtu/services/export_service.dart';
 import 'timetable_grid_screen.dart';
 import '../models/timetable_model.dart';
 import '../theme/app_theme.dart';
+import 'package:confetti/confetti.dart';
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
@@ -23,12 +24,20 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   late DateTime _focusedDate;
   CalendarFormat _calendarFormat = CalendarFormat.week;
   final ExportService _exportService = ExportService();
+  late ConfettiController _confettiController;
 
   @override
   void initState() {
     super.initState();
     _selectedDate = DateTime.now();
     _focusedDate = DateTime.now();
+    _confettiController = ConfettiController(duration: const Duration(seconds: 1));
+  }
+
+  @override
+  void dispose() {
+    _confettiController.dispose();
+    super.dispose();
   }
 
   String _getDayName(DateTime date) {
@@ -98,9 +107,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) {
+        // Build the button layout manually to handle centering the last item
         List<Widget> buttonRows = [];
         final screenWidth = MediaQuery.of(context).size.width;
-        final horizontalPadding = 24.0 * 2; 
+        final horizontalPadding = 24.0 * 2; // Modal's horizontal padding
         final modalContentWidth = screenWidth - horizontalPadding;
         final spacing = 12.0;
         final itemWidth = (modalContentWidth - spacing) / 2;
@@ -119,6 +129,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
           Widget row;
           if (i + 1 < attendanceOptions.length) {
+            // This is a full row with two buttons
             final option2 = attendanceOptions[i + 1];
             final button2 = _buildAttendanceOption(
               icon: option2['icon'],
@@ -135,6 +146,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               Expanded(child: button2),
             ]);
           } else {
+            // This is the last row with a single, centered button
             row = Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -255,11 +267,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     );
   }
 
-  void _markAttendance(ClassInfo classInfo, AttendanceStatus status) {
+  void _markAttendance(ClassInfo classInfo, AttendanceStatus status) async {
     if (classInfo.timeSlot == null) return;
     final model = context.read<TimetableModel>();
     final hours = classInfo.duration.toDouble();
-    model.markAttendance(
+    final newlyUnlocked = await model.markAttendance(
       classInfo.subject.name,
       classInfo.isTheory ? 'theory' : 'practical',
       status,
@@ -270,6 +282,16 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     _showStatusMessage(
         'Marked as ${_getStatusText(status)} for ${classInfo.subject.name}',
         _getStatusColor(status));
+    
+    if (newlyUnlocked.isNotEmpty) {
+      _confettiController.play();
+      for (var achievementName in newlyUnlocked) {
+        _showStatusMessage(
+          'Achievement Unlocked: $achievementName!',
+          Colors.amber,
+        );
+      }
+    }
   }
 
   Widget _buildAttendanceOption({
@@ -384,222 +406,238 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Consumer<TimetableModel>(
-      builder: (context, model, child) {
-        final dayName = _getDayName(_selectedDate);
-        final classesForSelectedDay =
-            _isWeekday(_selectedDate) ? model.getClassesForDay(dayName) : [];
-        final heatmapData = model.getCalendarHeatmapData();
+    return Stack(
+      alignment: Alignment.topCenter,
+      children: [
+        Consumer<TimetableModel>(
+          builder: (context, model, child) {
+            final dayName = _getDayName(_selectedDate);
+            final classesForSelectedDay =
+                _isWeekday(_selectedDate) ? model.getClassesForDay(dayName) : [];
+            final heatmapData = model.getCalendarHeatmapData();
 
-        return Scaffold(
-          body: CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                title: const Text('Attendance Tracker'),
-                pinned: true,
-                floating: true,
-                actions: [
-                  IconButton(
-                    onPressed: () => _exportService.exportAttendance(model.attendanceRecords),
-                    icon: const Icon(Icons.share),
-                    tooltip: 'Export Attendance',
-                  ),
-                  IconButton(
-                    onPressed: _showEditOptions,
-                    icon: const Icon(Icons.edit_calendar_outlined),
-                    tooltip: 'Edit Timetable',
-                  ),
-                ],
-              ),
-              SliverToBoxAdapter(
-                child: Container(
-                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  decoration: BoxDecoration(
-                      color: theme.colorScheme.surface.withOpacity(0.8),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white.withOpacity(0.1))),
-                  child: TableCalendar(
-                    focusedDay: _focusedDate,
-                    firstDay: DateTime.utc(2020),
-                    lastDay: DateTime.utc(2030),
-                    calendarFormat: _calendarFormat,
-                    selectedDayPredicate: (day) =>
-                        isSameDay(_selectedDate, day),
-                    onDaySelected: (selectedDay, focusedDay) {
-                      setState(() {
-                        _selectedDate = selectedDay;
-                        _focusedDate = focusedDay;
-                      });
-                    },
-                    onFormatChanged: (format) {
-                      if (_calendarFormat != format) {
-                        setState(() {
-                          _calendarFormat = format;
-                        });
-                      }
-                    },
-                    onPageChanged: (focusedDay) {
-                      _focusedDate = focusedDay;
-                    },
-                    headerStyle: HeaderStyle(
-                        titleTextStyle: theme.textTheme.titleMedium!,
-                        formatButtonTextStyle:
-                            const TextStyle(color: Colors.white),
-                        formatButtonDecoration: BoxDecoration(
-                            color: theme.colorScheme.primary.withOpacity(0.8),
-                            borderRadius: BorderRadius.circular(8))),
-                    calendarStyle: CalendarStyle(
-                      defaultTextStyle: theme.textTheme.bodyMedium!,
-                      weekendTextStyle: theme.textTheme.bodyMedium!.copyWith(
-                          color: theme.colorScheme.primary.withOpacity(0.7)),
-                      selectedTextStyle: const TextStyle(
-                          color: Colors.black, fontWeight: FontWeight.bold),
-                      todayTextStyle: TextStyle(
-                          color: theme.colorScheme.secondary,
-                          fontWeight: FontWeight.bold),
-                      selectedDecoration: BoxDecoration(
-                        color: theme.colorScheme.primary,
-                        shape: BoxShape.circle,
+            return Scaffold(
+              body: CustomScrollView(
+                slivers: [
+                  SliverAppBar(
+                    title: const Text('Attendance Tracker'),
+                    pinned: true,
+                    floating: true,
+                    actions: [
+                      IconButton(
+                        onPressed: () => _exportService.exportAttendance(model.attendanceRecords),
+                        icon: const Icon(Icons.share),
+                        tooltip: 'Export Attendance',
                       ),
-                      todayDecoration: BoxDecoration(
-                        color: Colors.transparent,
-                        border: Border.all(
-                            color: theme.colorScheme.secondary, width: 2),
-                        shape: BoxShape.circle,
+                      IconButton(
+                        onPressed: _showEditOptions,
+                        icon: const Icon(Icons.edit_calendar_outlined),
+                        tooltip: 'Edit Timetable',
                       ),
-                    ),
-                    calendarBuilders: CalendarBuilders(
-                      markerBuilder: (context, day, events) {
-                        final date = DateTime(day.year, day.month, day.day);
-                        if (heatmapData.containsKey(date)) {
-                          return Container(
-                            decoration: BoxDecoration(
-                              color: heatmapData[date]!.withOpacity(0.5),
-                              shape: BoxShape.circle,
-                            ),
-                          );
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Classes for $dayName',
-                          style: theme.textTheme.titleLarge,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            iconSize: 22,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            onPressed: () => model.bulkMarkDay(_selectedDate, AttendanceStatus.present),
-                            icon: const Icon(Icons.check_circle),
-                            tooltip: "Mark All Present",
-                            color: AppTheme.secondary,
-                          ),
-                          const SizedBox(width: 8),
-                          IconButton(
-                            iconSize: 22,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            onPressed: () => model.bulkMarkDay(_selectedDate, AttendanceStatus.absent),
-                            icon: const Icon(Icons.cancel),
-                            tooltip: "Mark All Absent",
-                            color: AppTheme.error,
-                          ),
-                          const SizedBox(width: 8),
-                          IconButton(
-                            iconSize: 22,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            onPressed: () => model.bulkMarkDay(_selectedDate, AttendanceStatus.holiday),
-                            icon: const Icon(Icons.beach_access),
-                            tooltip: "Mark All as Holiday",
-                            color: Colors.grey,
-                          )
-                        ],
-                      )
                     ],
                   ),
-                ),
-              ),
-              if (!_isWeekday(_selectedDate) || classesForSelectedDay.isEmpty)
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Center(
-                    child: _buildInfoCard(
-                      _isWeekday(_selectedDate)
-                          ? 'No classes scheduled for this day'
-                          : 'No classes scheduled for weekends',
-                      _isWeekday(_selectedDate)
-                          ? Icons.free_breakfast_outlined
-                          : Icons.weekend_outlined,
+                  SliverToBoxAdapter(
+                    child: Container(
+                      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      decoration: BoxDecoration(
+                          color: theme.colorScheme.surface.withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.white.withOpacity(0.1))),
+                      child: TableCalendar(
+                        focusedDay: _focusedDate,
+                        firstDay: DateTime.utc(2020),
+                        lastDay: DateTime.utc(2030),
+                        calendarFormat: _calendarFormat,
+                        selectedDayPredicate: (day) =>
+                            isSameDay(_selectedDate, day),
+                        onDaySelected: (selectedDay, focusedDay) {
+                          setState(() {
+                            _selectedDate = selectedDay;
+                            _focusedDate = focusedDay;
+                          });
+                        },
+                        onFormatChanged: (format) {
+                          if (_calendarFormat != format) {
+                            setState(() {
+                              _calendarFormat = format;
+                            });
+                          }
+                        },
+                        onPageChanged: (focusedDay) {
+                          _focusedDate = focusedDay;
+                        },
+                        headerStyle: HeaderStyle(
+                            titleTextStyle: theme.textTheme.titleMedium!,
+                            formatButtonTextStyle:
+                                const TextStyle(color: Colors.white),
+                            formatButtonDecoration: BoxDecoration(
+                                color: theme.colorScheme.primary.withOpacity(0.8),
+                                borderRadius: BorderRadius.circular(8))),
+                        calendarStyle: CalendarStyle(
+                          defaultTextStyle: theme.textTheme.bodyMedium!,
+                          weekendTextStyle: theme.textTheme.bodyMedium!.copyWith(
+                              color: theme.colorScheme.primary.withOpacity(0.7)),
+                          selectedTextStyle: const TextStyle(
+                              color: Colors.black, fontWeight: FontWeight.bold),
+                          todayTextStyle: TextStyle(
+                              color: theme.colorScheme.secondary,
+                              fontWeight: FontWeight.bold),
+                          selectedDecoration: BoxDecoration(
+                            color: theme.colorScheme.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          todayDecoration: BoxDecoration(
+                            color: Colors.transparent,
+                            border: Border.all(
+                                color: theme.colorScheme.secondary, width: 2),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        calendarBuilders: CalendarBuilders(
+                          markerBuilder: (context, day, events) {
+                            final date = DateTime(day.year, day.month, day.day);
+                            if (heatmapData.containsKey(date)) {
+                              return Container(
+                                decoration: BoxDecoration(
+                                  color: heatmapData[date]!.withOpacity(0.5),
+                                  shape: BoxShape.circle,
+                                ),
+                              );
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
                     ),
                   ),
-                )
-              else
-                SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final classInfo = classesForSelectedDay[index];
-                      final status = classInfo.timeSlot == null
-                          ? null
-                          : model.getAttendanceStatus(
-                              classInfo.subject.name,
-                              classInfo.isTheory ? 'theory' : 'practical',
-                              _selectedDate,
-                              classInfo.timeSlot!);
-                      return Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                        child: _buildClassCard(classInfo, status),
-                      );
-                    },
-                    childCount: classesForSelectedDay.length,
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Classes for $dayName',
+                              style: theme.textTheme.titleLarge,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                iconSize: 22,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                onPressed: () => model.bulkMarkDay(_selectedDate, AttendanceStatus.present),
+                                icon: const Icon(Icons.check_circle),
+                                tooltip: "Mark All Present",
+                                color: AppTheme.secondary,
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                iconSize: 22,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                onPressed: () => model.bulkMarkDay(_selectedDate, AttendanceStatus.absent),
+                                icon: const Icon(Icons.cancel),
+                                tooltip: "Mark All Absent",
+                                color: AppTheme.error,
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                iconSize: 22,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                onPressed: () => model.bulkMarkDay(_selectedDate, AttendanceStatus.holiday),
+                                icon: const Icon(Icons.beach_access),
+                                tooltip: "Mark All as Holiday",
+                                color: Colors.grey,
+                              )
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 32, 16, 16),
-                  child: Text(
-                    'Attendance Summary',
-                    style: theme.textTheme.titleLarge,
+                  if (!_isWeekday(_selectedDate) || classesForSelectedDay.isEmpty)
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Center(
+                        child: _buildInfoCard(
+                          _isWeekday(_selectedDate)
+                              ? 'No classes scheduled for this day'
+                              : 'No classes scheduled for weekends',
+                          _isWeekday(_selectedDate)
+                              ? Icons.free_breakfast_outlined
+                              : Icons.weekend_outlined,
+                        ),
+                      ),
+                    )
+                  else
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final classInfo = classesForSelectedDay[index];
+                          final status = classInfo.timeSlot == null
+                              ? null
+                              : model.getAttendanceStatus(
+                                  classInfo.subject.name,
+                                  classInfo.isTheory ? 'theory' : 'practical',
+                                  _selectedDate,
+                                  classInfo.timeSlot!);
+                          return Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                            child: _buildClassCard(classInfo, status),
+                          );
+                        },
+                        childCount: classesForSelectedDay.length,
+                      ),
+                    ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 32, 16, 16),
+                      child: Text(
+                        'Attendance Summary',
+                        style: theme.textTheme.titleLarge,
+                      ),
+                    ),
                   ),
-                ),
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final subject = model.subjects[index];
+                        final theoryData =
+                            model.attendanceData[subject.name]!['theory']!;
+                        final practicalData =
+                            model.attendanceData[subject.name]!['practical']!;
+                        return Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                          child:
+                              _buildSummaryCard(subject, theoryData, practicalData),
+                        );
+                      },
+                      childCount: model.subjects.length,
+                    ),
+                  )
+                ],
               ),
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final subject = model.subjects[index];
-                    final theoryData =
-                        model.attendanceData[subject.name]!['theory']!;
-                    final practicalData =
-                        model.attendanceData[subject.name]!['practical']!;
-                    return Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                      child:
-                          _buildSummaryCard(subject, theoryData, practicalData),
-                    );
-                  },
-                  childCount: model.subjects.length,
-                ),
-              )
-            ],
-          ),
-        );
-      },
+            );
+          },
+        ),
+        ConfettiWidget(
+          confettiController: _confettiController,
+          blastDirectionality: BlastDirectionality.explosive,
+          shouldLoop: false, 
+          numberOfParticles: 20, 
+          gravity: 0.1,
+          emissionFrequency: 0.05,
+          colors: const [
+            Colors.green, Colors.blue, Colors.pink, Colors.orange, Colors.purple
+          ], 
+        ),
+      ],
     );
   }
 

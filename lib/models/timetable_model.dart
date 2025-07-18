@@ -104,6 +104,7 @@ class AttendanceSummary {
   void addEntry(AttendanceStatus status, double hours) {
     switch (status) {
       case AttendanceStatus.present:
+      case AttendanceStatus.teacherAbsent:
         totalHoursHeld += hours;
         totalHoursAttended += hours;
         hoursHeldExclMassBunk += hours;
@@ -114,13 +115,10 @@ class AttendanceSummary {
         hoursHeldExclMassBunk += hours;
         break;
       case AttendanceStatus.holiday:
-        totalScheduledHours -= hours;
+        // Holidays don't count towards total scheduled hours
         break;
       case AttendanceStatus.massBunk:
         totalHoursHeld += hours;
-        break;
-      case AttendanceStatus.teacherAbsent:
-        totalScheduledHours -= hours;
         break;
     }
   }
@@ -128,6 +126,7 @@ class AttendanceSummary {
   void removeEntry(AttendanceStatus status, double hours) {
     switch (status) {
       case AttendanceStatus.present:
+      case AttendanceStatus.teacherAbsent:
         totalHoursHeld -= hours;
         totalHoursAttended -= hours;
         hoursHeldExclMassBunk -= hours;
@@ -138,22 +137,19 @@ class AttendanceSummary {
         hoursHeldExclMassBunk -= hours;
         break;
       case AttendanceStatus.holiday:
-        totalScheduledHours += hours;
+        // No change needed
         break;
       case AttendanceStatus.massBunk:
         totalHoursHeld -= hours;
-        break;
-      case AttendanceStatus.teacherAbsent:
-        totalScheduledHours += hours;
         break;
     }
   }
 
   double get percentage =>
-      totalHoursHeld == 0 ? 0.0 : (totalHoursAttended / totalHoursHeld) * 100;
+      totalHoursHeld == 0 ? 100.0 : (totalHoursAttended / totalHoursHeld) * 100;
 
   double get percentageExclMassBunk => hoursHeldExclMassBunk == 0
-      ? 0.0
+      ? 100.0
       : (hoursAttendedExclMassBunk / hoursHeldExclMassBunk) * 100;
 
   double get hoursCanMiss {
@@ -192,6 +188,8 @@ class TimetableModel extends ChangeNotifier {
   Map<String, Map<String, AttendanceSummary>> _attendanceData = {};
   List<AttendanceRecord> _attendanceRecords = [];
   List<Subject> _subjects = [];
+  Set<String> _unlockedAchievementIds = {};
+  int _attendanceStreak = 0;
 
   final List<String> _days = [
     'Monday',
@@ -220,6 +218,12 @@ class TimetableModel extends ChangeNotifier {
   List<Subject> get subjects => _subjects;
   List<String> get days => _days;
   List<String> get timeSlots => _timeSlots;
+  int get attendanceStreak => _attendanceStreak;
+  Set<String> get unlockedAchievementIds => _unlockedAchievementIds;
+
+  TimetableModel() {
+    load();
+  }
 
   void _initializeTimetable() {
     for (String day in _days) {
@@ -303,6 +307,14 @@ class TimetableModel extends ChangeNotifier {
           };
         }
       }
+
+      final unlockedAchievements = prefs.getStringList('unlocked_achievements');
+      if (unlockedAchievements != null) {
+        _unlockedAchievementIds = unlockedAchievements.toSet();
+      }
+
+      _attendanceStreak = prefs.getInt('attendance_streak') ?? 0;
+
       _initializeAttendanceData();
       notifyListeners();
     } catch (e) {
@@ -342,6 +354,9 @@ class TimetableModel extends ChangeNotifier {
     }
     await prefs.setString(
         'timewise_attendance_summary', jsonEncode(summaryData));
+    
+    await prefs.setStringList('unlocked_achievements', _unlockedAchievementIds.toList());
+    await prefs.setInt('attendance_streak', _attendanceStreak);
   }
 
   void updateSubjects(List<Subject> newSubjects) {
@@ -385,8 +400,12 @@ class TimetableModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void markAttendance(String subjectName, String classType,
-      AttendanceStatus status, DateTime date, String timeSlot, double hours) {
+  Future<List<String>> markAttendance(String subjectName, String classType,
+      AttendanceStatus status, DateTime date, String timeSlot, double hours) async {
+    
+    final summary = _attendanceData[subjectName]![classType]!;
+    final oldPercentage = summary.percentage;
+
     final existingIndex = _attendanceRecords.indexWhere((record) =>
         record.subjectName == subjectName &&
         record.classType == classType &&
@@ -397,8 +416,7 @@ class TimetableModel extends ChangeNotifier {
 
     if (existingIndex != -1) {
       final oldRecord = _attendanceRecords[existingIndex];
-      _attendanceData[subjectName]![classType]!
-          .removeEntry(oldRecord.status, oldRecord.hours);
+      summary.removeEntry(oldRecord.status, oldRecord.hours);
       _attendanceRecords[existingIndex] = AttendanceRecord(
         subjectName: subjectName,
         classType: classType,
@@ -417,9 +435,14 @@ class TimetableModel extends ChangeNotifier {
         hours: hours,
       ));
     }
-    _attendanceData[subjectName]![classType]!.addEntry(status, hours);
+    summary.addEntry(status, hours);
+
+    _updateAttendanceStreak();
+    final newAchievements = await _checkAndUnlockAchievements(subjectName, oldPercentage, summary.percentage);
+
     save();
     notifyListeners();
+    return newAchievements;
   }
 
   AttendanceStatus? getAttendanceStatus(
@@ -595,5 +618,100 @@ class TimetableModel extends ChangeNotifier {
   Map<String, AttendanceSummary> getAttendanceDataForSubject(String subjectName) {
     return _attendanceData[subjectName] ??
         {'theory': AttendanceSummary(), 'practical': AttendanceSummary()};
+  }
+
+  AttendanceSummary getOverallAttendanceSummary() {
+    final overallSummary = AttendanceSummary();
+    _attendanceData.forEach((subjectName, types) {
+      types.forEach((type, summary) {
+        overallSummary.totalHoursHeld += summary.totalHoursHeld;
+        overallSummary.totalHoursAttended += summary.totalHoursAttended;
+      });
+    });
+    return overallSummary;
+  }
+
+  void _updateAttendanceStreak() {
+    if (_attendanceRecords.isEmpty) {
+      _attendanceStreak = 0;
+      return;
+    }
+
+    // Get unique, sorted dates from records
+    final recordDates = _attendanceRecords.map((r) => DateTime(r.date.year, r.date.month, r.date.day)).toSet().toList();
+    recordDates.sort((a, b) => b.compareTo(a));
+
+    int currentStreak = 0;
+    DateTime currentDate = DateTime.now();
+    DateTime today = DateTime(currentDate.year, currentDate.month, currentDate.day);
+
+    // Find the starting point for streak calculation
+    DateTime lastDayWithRecords = recordDates.first;
+    if (lastDayWithRecords.isBefore(today)) {
+      // If there are no records for today, check if today has classes
+      final todayName = DateFormat('EEEE').format(today);
+      if (_days.contains(todayName) && getClassesForDay(todayName).isNotEmpty) {
+        // Classes were scheduled today but not marked, so streak is 0
+        _attendanceStreak = 0;
+        return;
+      }
+    }
+
+
+    for (final date in recordDates) {
+      final dayName = DateFormat('EEEE').format(date);
+      if (!_days.contains(dayName)) continue; // Skip weekends
+
+      final scheduledClasses = getClassesForDay(dayName);
+      if (scheduledClasses.isEmpty) continue;
+
+      final recordsForDay = _attendanceRecords.where((r) => r.date.year == date.year && r.date.month == date.month && r.date.day == date.day);
+
+      bool isDayPerfect = true;
+      if (recordsForDay.length < scheduledClasses.length) {
+        isDayPerfect = false; // Not all classes marked
+      } else {
+        for (final record in recordsForDay) {
+          if (record.status == AttendanceStatus.absent || record.status == AttendanceStatus.massBunk) {
+            isDayPerfect = false;
+            break;
+          }
+        }
+      }
+
+      if (isDayPerfect) {
+        currentStreak++;
+      } else {
+        break; // Streak broken
+      }
+    }
+    _attendanceStreak = currentStreak;
+  }
+
+  Future<List<String>> _checkAndUnlockAchievements(String subjectName, double oldPercentage, double newPercentage) async {
+    List<String> newlyUnlocked = [];
+
+    // Comeback Kid
+    if (oldPercentage < 75 && newPercentage >= 75) {
+      if (_unlockedAchievementIds.add('comeback_kid_1')) {
+        newlyUnlocked.add('Comeback Kid');
+      }
+    }
+
+    // Scholar
+    if (newPercentage > 90) {
+      if (_unlockedAchievementIds.add('scholar_1')) {
+        newlyUnlocked.add('Scholar');
+      }
+    }
+
+    // Dedicated Student
+    if (getOverallAttendanceSummary().percentage > 85) {
+      if (_unlockedAchievementIds.add('dedicated_student')) {
+        newlyUnlocked.add('Dedicated Student');
+      }
+    }
+
+    return newlyUnlocked;
   }
 }
