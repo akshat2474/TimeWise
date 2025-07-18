@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:csv/csv.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:timewise_dtu/models/timetable_model.dart';
@@ -10,9 +11,11 @@ class ExportService {
       ['Date', 'Subject', 'Class Type', 'Status', 'Hours']
     ];
 
+    final DateFormat formatter = DateFormat('dd-MM-yyyy');
+
     for (final record in records) {
       rows.add([
-        record.date.toIso8601String().substring(0, 10),
+        formatter.format(record.date),
         record.subjectName,
         record.classType,
         record.status.name,
