@@ -32,7 +32,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     super.initState();
     _selectedDate = DateTime.now();
     _focusedDate = DateTime.now();
-    _confettiController = ConfettiController(duration: const Duration(seconds: 1));
+    _confettiController =
+        ConfettiController(duration: const Duration(seconds: 1));
   }
 
   @override
@@ -108,10 +109,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) {
-        // Build the button layout manually to handle centering the last item
         List<Widget> buttonRows = [];
         final screenWidth = MediaQuery.of(context).size.width;
-        final horizontalPadding = 24.0 * 2; // Modal's horizontal padding
+        final horizontalPadding = 24.0 * 2;
         final modalContentWidth = screenWidth - horizontalPadding;
         final spacing = 12.0;
         final itemWidth = (modalContentWidth - spacing) / 2;
@@ -122,23 +122,22 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             icon: option1['icon'],
             label: option1['label'],
             color: option1['color'],
-            onTap: () {
-              _markAttendance(classInfo, option1['status']);
+            onTap: () async {
               Navigator.pop(context);
+              await _markAttendance(classInfo, option1['status']);
             },
           );
 
           Widget row;
           if (i + 1 < attendanceOptions.length) {
-            // This is a full row with two buttons
             final option2 = attendanceOptions[i + 1];
             final button2 = _buildAttendanceOption(
               icon: option2['icon'],
               label: option2['label'],
               color: option2['color'],
-              onTap: () {
-                _markAttendance(classInfo, option2['status']);
+              onTap: () async {
                 Navigator.pop(context);
+                await _markAttendance(classInfo, option2['status']);
               },
             );
             row = Row(children: [
@@ -147,7 +146,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               Expanded(child: button2),
             ]);
           } else {
-            // This is the last row with a single, centered button
             row = Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -268,7 +266,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     );
   }
 
-  void _markAttendance(ClassInfo classInfo, AttendanceStatus status) async {
+  Future<void> _markAttendance(
+      ClassInfo classInfo, AttendanceStatus status) async {
     if (classInfo.timeSlot == null) return;
     final model = context.read<TimetableModel>();
     final hours = classInfo.duration.toDouble();
@@ -283,9 +282,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     _showStatusMessage(
         'Marked as ${_getStatusText(status)} for ${classInfo.subject.name}',
         _getStatusColor(status));
-    
+
     if (newlyUnlocked.isNotEmpty) {
       _confettiController.play();
+      await Future.delayed(const Duration(milliseconds: 100));
       for (var achievementName in newlyUnlocked) {
         _showStatusMessage(
           'Achievement Unlocked: $achievementName!',
@@ -385,6 +385,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 
   void _showStatusMessage(String message, Color color) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -640,13 +641,17 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         ConfettiWidget(
           confettiController: _confettiController,
           blastDirectionality: BlastDirectionality.explosive,
-          shouldLoop: false, 
-          numberOfParticles: 20, 
+          shouldLoop: false,
+          numberOfParticles: 20,
           gravity: 0.1,
           emissionFrequency: 0.05,
           colors: const [
-            Colors.green, Colors.blue, Colors.pink, Colors.orange, Colors.purple
-          ], 
+            Colors.green,
+            Colors.blue,
+            Colors.pink,
+            Colors.orange,
+            Colors.purple
+          ],
         ),
       ],
     );

@@ -146,10 +146,10 @@ class AttendanceSummary {
   }
 
   double get percentage =>
-      totalHoursHeld == 0 ? 100.0 : (totalHoursAttended / totalHoursHeld) * 100;
+      totalHoursHeld == 0 ? 0.0 : (totalHoursAttended / totalHoursHeld) * 100;
 
   double get percentageExclMassBunk => hoursHeldExclMassBunk == 0
-      ? 100.0
+      ? 0.0
       : (hoursAttendedExclMassBunk / hoursHeldExclMassBunk) * 100;
 
   double get hoursCanMiss {

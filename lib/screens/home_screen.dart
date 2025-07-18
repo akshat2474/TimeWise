@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:timewise_dtu/models/subject_model.dart';
 import 'package:timewise_dtu/screens/achievements_screen.dart';
 import 'package:timewise_dtu/services/notification_service.dart';
 import 'package:timewise_dtu/theme/app_theme.dart';
@@ -12,8 +11,6 @@ import '../models/timetable_model.dart';
 import 'subject_setup_screen.dart';
 import 'dart:async';
 import 'package:percent_indicator/circular_percent_indicator.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'dart:math';
 
 
 class HomeScreen extends StatefulWidget {
