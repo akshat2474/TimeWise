@@ -182,7 +182,7 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
           ),
           circularStrokeCap: CircularStrokeCap.round,
           progressColor: _getPercentageColor(percentage),
-          backgroundColor: theme.colorScheme.surfaceVariant,
+          backgroundColor: theme.colorScheme.surfaceContainerHighest,
         ),
       ],
     );

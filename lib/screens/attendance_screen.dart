@@ -33,7 +33,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     _selectedDate = DateTime.now();
     _focusedDate = DateTime.now();
     _confettiController =
-        ConfettiController(duration: const Duration(seconds: 1));
+        ConfettiController(duration: const Duration(seconds: 2));
   }
 
   @override
@@ -59,7 +59,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     return date.weekday >= 1 && date.weekday <= 5;
   }
 
-  void _showAttendanceDialog(ClassInfo classInfo) {
+  Future<void> _showAttendanceDialog(ClassInfo classInfo) async {
     final model = context.read<TimetableModel>();
     final theme = Theme.of(context);
     final currentStatus = classInfo.timeSlot == null
@@ -104,13 +104,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       },
     ];
 
-    showModalBottomSheet(
+    final selectedStatus = await showModalBottomSheet<AttendanceStatus>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) {
+      builder: (dialogContext) {
         List<Widget> buttonRows = [];
-        final screenWidth = MediaQuery.of(context).size.width;
+        final screenWidth = MediaQuery.of(dialogContext).size.width;
         final horizontalPadding = 24.0 * 2;
         final modalContentWidth = screenWidth - horizontalPadding;
         final spacing = 12.0;
@@ -122,9 +122,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             icon: option1['icon'],
             label: option1['label'],
             color: option1['color'],
-            onTap: () async {
-              Navigator.pop(context);
-              await _markAttendance(classInfo, option1['status']);
+            onTap: () {
+              Navigator.pop(dialogContext, option1['status']);
             },
           );
 
@@ -135,9 +134,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               icon: option2['icon'],
               label: option2['label'],
               color: option2['color'],
-              onTap: () async {
-                Navigator.pop(context);
-                await _markAttendance(classInfo, option2['status']);
+              onTap: () {
+                Navigator.pop(dialogContext, option2['status']);
               },
             );
             row = Row(children: [
@@ -172,7 +170,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         return Container(
           margin: const EdgeInsets.all(8),
           padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+              bottom: MediaQuery.of(dialogContext).viewInsets.bottom + 16,
               top: 24,
               left: 24,
               right: 24),
@@ -264,6 +262,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         );
       },
     );
+
+    if (selectedStatus != null) {
+      await _markAttendance(classInfo, selectedStatus);
+    }
   }
 
   Future<void> _markAttendance(
@@ -279,20 +281,51 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       classInfo.timeSlot!,
       hours,
     );
+
     _showStatusMessage(
         'Marked as ${_getStatusText(status)} for ${classInfo.subject.name}',
         _getStatusColor(status));
 
-    if (newlyUnlocked.isNotEmpty) {
+    if (newlyUnlocked.isNotEmpty && mounted) {
+      // A small delay ensures the modal is fully gone and the main screen is ready.
+      await Future.delayed(const Duration(milliseconds: 300));
       _confettiController.play();
-      await Future.delayed(const Duration(milliseconds: 100));
-      for (var achievementName in newlyUnlocked) {
-        _showStatusMessage(
-          'Achievement Unlocked: $achievementName!',
-          Colors.amber,
-        );
-      }
+      _showAchievementDialog(newlyUnlocked);
     }
+  }
+
+  void _showAchievementDialog(List<String> newlyUnlocked) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.emoji_events, color: Colors.amber, size: 28),
+            const SizedBox(width: 12),
+            Text('Achievement Unlocked!',
+                style: Theme.of(context).textTheme.titleLarge),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: newlyUnlocked
+              .map((name) => Text(
+                    '• $name',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ))
+              .toList(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Awesome!'),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildAttendanceOption({
@@ -642,7 +675,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           confettiController: _confettiController,
           blastDirectionality: BlastDirectionality.explosive,
           shouldLoop: false,
-          numberOfParticles: 20,
+          numberOfParticles: 30,
           gravity: 0.1,
           emissionFrequency: 0.05,
           colors: const [

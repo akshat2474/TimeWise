@@ -8,7 +8,6 @@ import 'package:timewise_dtu/theme/app_theme.dart';
 import 'timetable_grid_screen.dart';
 import '../models/subject_model.dart';
 import '../models/timetable_model.dart';
-import 'dart:math';
 
 class SubjectSetupScreen extends StatefulWidget {
   final List<Subject>? existingSubjects;
