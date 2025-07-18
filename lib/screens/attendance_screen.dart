@@ -97,128 +97,161 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => Container(
-        margin: const EdgeInsets.all(8),
-        padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-            top: 24,
-            left: 24,
-            right: 24),
-        decoration: BoxDecoration(
-            color: theme.colorScheme.surface.withOpacity(0.95),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white.withOpacity(0.2))),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
+      builder: (context) {
+        List<Widget> buttonRows = [];
+        final screenWidth = MediaQuery.of(context).size.width;
+        final horizontalPadding = 24.0 * 2; 
+        final modalContentWidth = screenWidth - horizontalPadding;
+        final spacing = 12.0;
+        final itemWidth = (modalContentWidth - spacing) / 2;
+
+        for (int i = 0; i < attendanceOptions.length; i += 2) {
+          final option1 = attendanceOptions[i];
+          final button1 = _buildAttendanceOption(
+            icon: option1['icon'],
+            label: option1['label'],
+            color: option1['color'],
+            onTap: () {
+              _markAttendance(classInfo, option1['status']);
+              Navigator.pop(context);
+            },
+          );
+
+          Widget row;
+          if (i + 1 < attendanceOptions.length) {
+            final option2 = attendanceOptions[i + 1];
+            final button2 = _buildAttendanceOption(
+              icon: option2['icon'],
+              label: option2['label'],
+              color: option2['color'],
+              onTap: () {
+                _markAttendance(classInfo, option2['status']);
+                Navigator.pop(context);
+              },
+            );
+            row = Row(children: [
+              Expanded(child: button1),
+              const SizedBox(width: 12),
+              Expanded(child: button2),
+            ]);
+          } else {
+            row = Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: itemWidth,
+                  child: button1,
+                ),
+              ],
+            );
+          }
+          buttonRows.add(row);
+        }
+
+        final Widget attendanceButtons = Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (int i = 0; i < buttonRows.length; i++) ...[
+              buttonRows[i],
+              if (i < buttonRows.length - 1) const SizedBox(height: 12),
+            ],
+          ],
+        );
+
+        return Container(
+          margin: const EdgeInsets.all(8),
+          padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+              top: 24,
+              left: 24,
+              right: 24),
+          decoration: BoxDecoration(
+              color: theme.colorScheme.surface.withOpacity(0.95),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white.withOpacity(0.2))),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: (classInfo.subject.color).withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        classInfo.isTheory
+                            ? Icons.book_outlined
+                            : Icons.science_outlined,
+                        color: classInfo.subject.color,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            classInfo.subject.name,
+                            style: theme.textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${classInfo.isTheory ? 'Theory' : 'Practical'} • ${classInfo.duration}h • ${_getDayName(_selectedDate)}',
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                if (currentStatus != null) ...[
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: (classInfo.subject.color).withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(12),
+                      color: _getStatusColor(currentStatus).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: _getStatusColor(currentStatus).withOpacity(0.3),
+                        width: 1,
+                      ),
                     ),
-                    child: Icon(
-                      classInfo.isTheory
-                          ? Icons.book_outlined
-                          : Icons.science_outlined,
-                      color: classInfo.subject.color,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
                       children: [
-                        Text(
-                          classInfo.subject.name,
-                          style: theme.textTheme.titleLarge,
+                        Icon(
+                          _getStatusIcon(currentStatus),
+                          color: _getStatusColor(currentStatus),
+                          size: 20,
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(width: 12),
                         Text(
-                          '${classInfo.isTheory ? 'Theory' : 'Practical'} • ${classInfo.duration}h • ${_getDayName(_selectedDate)}',
-                          style: theme.textTheme.bodyMedium,
+                          'Current Status: ${_getStatusText(currentStatus)}',
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: _getStatusColor(currentStatus),
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(height: 16),
                 ],
-              ),
-              const SizedBox(height: 24),
-              if (currentStatus != null) ...[
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(currentStatus).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: _getStatusColor(currentStatus).withOpacity(0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        _getStatusIcon(currentStatus),
-                        color: _getStatusColor(currentStatus),
-                        size: 20,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Current Status: ${_getStatusText(currentStatus)}',
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          color: _getStatusColor(currentStatus),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
+                Text(
+                  'Mark Attendance:',
+                  style: theme.textTheme.titleMedium,
                 ),
                 const SizedBox(height: 16),
+                attendanceButtons,
               ],
-              Text(
-                'Mark Attendance:',
-                style: theme.textTheme.titleMedium,
-              ),
-              const SizedBox(height: 16),
-              GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: (MediaQuery.of(context).size.width / 2) /
-                      60, // Adjust aspect ratio for uniform height
-                ),
-                itemCount: attendanceOptions.length,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemBuilder: (context, index) {
-                  final option = attendanceOptions[index];
-                  Widget button = _buildAttendanceOption(
-                    icon: option['icon'],
-                    label: option['label'],
-                    color: option['color'],
-                    onTap: () {
-                      _markAttendance(classInfo, option['status']);
-                      Navigator.pop(context);
-                    },
-                  );
-
-                  if (index == attendanceOptions.length - 1 &&
-                      attendanceOptions.length.isOdd) {
-                    return GridTile(child: button);
-                  }
-                  return button;
-                },
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -248,7 +281,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
@@ -259,12 +292,15 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           children: [
             Icon(icon, color: color, size: 20),
             const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -455,19 +491,40 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Classes for $dayName',
-                        style: theme.textTheme.titleLarge,
+                      Expanded(
+                        child: Text(
+                          'Classes for $dayName',
+                          style: theme.textTheme.titleLarge,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                       Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
+                            iconSize: 22,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
                             onPressed: () => model.bulkMarkDay(_selectedDate, AttendanceStatus.present),
                             icon: const Icon(Icons.check_circle),
                             tooltip: "Mark All Present",
                             color: AppTheme.secondary,
                           ),
+                          const SizedBox(width: 8),
                           IconButton(
+                            iconSize: 22,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            onPressed: () => model.bulkMarkDay(_selectedDate, AttendanceStatus.absent),
+                            icon: const Icon(Icons.cancel),
+                            tooltip: "Mark All Absent",
+                            color: AppTheme.error,
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            iconSize: 22,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
                             onPressed: () => model.bulkMarkDay(_selectedDate, AttendanceStatus.holiday),
                             icon: const Icon(Icons.beach_access),
                             tooltip: "Mark All as Holiday",
@@ -578,43 +635,65 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             left: BorderSide(color: cardColor, width: 4),
           ),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              classInfo.isTheory ? Icons.book_outlined : Icons.science_outlined,
-              color: cardColor,
-              size: 24,
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    classInfo.subject.name,
-                    style: theme.textTheme.bodyLarge
-                        ?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${classInfo.isTheory ? "Theory" : "Practical"} • ${classInfo.timeSlot ?? "N/A"}',
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                ],
-              ),
-            ),
-            if (status != null)
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: _getStatusColor(status).withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
+            Row(
+              children: [
+                Icon(
+                  classInfo.isTheory ? Icons.book_outlined : Icons.science_outlined,
+                  color: cardColor,
+                  size: 24,
                 ),
-                child: Icon(_getStatusIcon(status),
-                    color: _getStatusColor(status), size: 20),
-              )
-            else
-              Icon(Icons.touch_app_outlined, color: Colors.grey[600], size: 24),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        classInfo.subject.name,
+                        style: theme.textTheme.bodyLarge
+                            ?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${classInfo.isTheory ? "Theory" : "Practical"} • ${classInfo.timeSlot ?? "N/A"}',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+                if (status != null)
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(status).withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(_getStatusIcon(status),
+                        color: _getStatusColor(status), size: 20),
+                  )
+                else
+                  Icon(Icons.touch_app_outlined, color: Colors.grey[600], size: 24),
+              ],
+            ),
+            if (classInfo.notes != null && classInfo.notes!.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 12.0, left: 40),
+                child: Row(
+                  children: [
+                    Icon(Icons.notes, size: 12, color: Colors.grey[400]),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        classInfo.notes!,
+                        style: TextStyle(fontSize: 12, color: Colors.grey[400], fontStyle: FontStyle.italic),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),

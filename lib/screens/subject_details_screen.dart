@@ -5,6 +5,7 @@ import 'package:timewise_dtu/models/subject_model.dart';
 import 'package:timewise_dtu/models/timetable_model.dart';
 import 'package:timewise_dtu/theme/app_theme.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:percent_indicator/circular_percent_indicator.dart';
 
 class SubjectDetailsScreen extends StatefulWidget {
   final Subject subject;
@@ -71,7 +72,7 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
             const SizedBox(height: 12),
             _buildChart(context, records),
             const SizedBox(height: 24),
-            _buildWhatIfCalculator(theme),
+            _buildWhatIfCalculator(theme, model),
             const SizedBox(height: 24),
             Text('Attendance Log', style: theme.textTheme.titleLarge),
             const SizedBox(height: 8),
@@ -82,7 +83,9 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
     );
   }
 
-  Widget _buildWhatIfCalculator(ThemeData theme) {
+  Widget _buildWhatIfCalculator(ThemeData theme, TimetableModel model) {
+    final summary = model.getAttendanceDataForSubject(widget.subject.name)[_whatIfType]!;
+    
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -114,6 +117,8 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                   onSelectionChanged: (newSelection) {
                     setState(() {
                       _whatIfType = newSelection.first;
+                      _whatIfPercentage = null;
+                      _missedClassesController.clear();
                     });
                   },
                 ),
@@ -143,20 +148,50 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
             ),
             if (_whatIfPercentage != null)
               Padding(
-                padding: const EdgeInsets.only(top: 16.0),
-                child: Text(
-                  'Your new attendance would be: ${_whatIfPercentage!.toStringAsFixed(1)}%',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: _whatIfPercentage! >= 75
-                        ? AppTheme.secondary
-                        : AppTheme.error,
-                  ),
+                padding: const EdgeInsets.only(top: 24.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildWhatIfGauge("Current", summary.percentage, theme),
+                    const Icon(Icons.arrow_forward_rounded, size: 24),
+                    _buildWhatIfGauge("Projected", _whatIfPercentage!, theme),
+                  ],
                 ),
               )
           ],
         ),
       ),
     );
+  }
+  
+  Widget _buildWhatIfGauge(String title, double percentage, ThemeData theme) {
+    return Column(
+      children: [
+        Text(title, style: theme.textTheme.titleMedium),
+        const SizedBox(height: 8),
+        CircularPercentIndicator(
+          radius: 45.0,
+          lineWidth: 7.0,
+          percent: (percentage / 100).clamp(0.0, 1.0),
+          center: Text(
+            '${percentage.toStringAsFixed(1)}%',
+            style: theme.textTheme.titleLarge?.copyWith(
+              color: _getPercentageColor(percentage),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          circularStrokeCap: CircularStrokeCap.round,
+          progressColor: _getPercentageColor(percentage),
+          backgroundColor: theme.colorScheme.surfaceVariant,
+        ),
+      ],
+    );
+  }
+
+  Color _getPercentageColor(double percentage) {
+    if (percentage >= 75) return AppTheme.secondary;
+    if (percentage >= 60) return Colors.orangeAccent;
+    return AppTheme.error;
   }
 
   Widget _buildAttendanceLog(List<AttendanceRecord> records, ThemeData theme) {

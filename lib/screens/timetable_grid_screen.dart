@@ -479,6 +479,22 @@ class _TimetableGridScreenState extends State<TimetableGridScreen> {
                         '${classInfo.duration}h', theme.colorScheme.surface),
                   ],
                 ),
+                 if (classInfo.notes != null && classInfo.notes!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(Icons.notes, size: 12, color: Colors.grey[400]),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          classInfo.notes!,
+                          style: TextStyle(fontSize: 12, color: Colors.grey[400], fontStyle: FontStyle.italic),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ]
               ],
             ),
           ),
@@ -572,6 +588,7 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
   Subject? _selectedSubject;
   ClassType _selectedType = ClassType.theory;
   int _selectedDuration = 1;
+  final TextEditingController _notesController = TextEditingController();
 
   @override
   void initState() {
@@ -580,7 +597,14 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
       _selectedSubject = widget.subjects.firstWhere((s) => s.id == widget.currentClass!.subject.id);
       _selectedType = widget.currentClass!.type;
       _selectedDuration = widget.currentClass!.duration;
+      _notesController.text = widget.currentClass!.notes ?? '';
     }
+  }
+
+  @override
+  void dispose() {
+    _notesController.dispose();
+    super.dispose();
   }
 
   bool _canSelect2Hours() {
@@ -820,6 +844,19 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
                   ),
                 ),
               ),
+            const SizedBox(height: 20),
+            Text(
+              'Notes (Optional):',
+              style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _notesController,
+              decoration: const InputDecoration(
+                hintText: 'e.g. Quiz, Assignment due',
+              ),
+              maxLines: 2,
+            ),
           ],
         ),
       ),
@@ -849,6 +886,7 @@ class _ClassSelectionDialogState extends State<ClassSelectionDialog> {
                     subject: _selectedSubject!,
                     type: _selectedType,
                     duration: _selectedDuration,
+                    notes: _notesController.text.trim(),
                   ));
                   Navigator.of(context).pop();
                 }

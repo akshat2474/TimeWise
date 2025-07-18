@@ -23,9 +23,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Rebuild the screen every minute to update "live" status and next class
     _timer =
-        Timer.periodic(const Duration(minutes: 1), (Timer t) => setState(() {}));
+        Timer.periodic(const Duration(seconds: 10), (Timer t) => setState(() {}));
   }
 
   @override
@@ -142,12 +141,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 16),
-        _buildNextClassCard(model),
-        const SizedBox(height: 24),
-        _buildSubjectsAtRisk(model),
         const SizedBox(height: 24),
         _buildTodaysSchedule(context, model),
+        const SizedBox(height: 24),
+        _buildSubjectsAtRisk(model),
         const SizedBox(height: 24),
       ],
     );
@@ -190,72 +187,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const SizedBox(height: 24),
-      ],
-    );
-  }
-
-  Widget _buildNextClassCard(TimetableModel model) {
-    final theme = Theme.of(context);
-    final nextClass = model.getNextClass();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("Up Next", style: theme.textTheme.titleLarge),
-        const SizedBox(height: 12),
-        _buildStyledCard(
-          child: nextClass == null
-              ? Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.celebration_outlined,
-                          color: theme.colorScheme.secondary, size: 24),
-                      const SizedBox(width: 12),
-                      Text("You're free for now!",
-                          style: theme.textTheme.titleMedium),
-                    ],
-                  ),
-                )
-              : Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: nextClass.subject.color.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        nextClass.isTheory
-                            ? Icons.book_outlined
-                            : Icons.science_outlined,
-                        color: nextClass.subject.color,
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            nextClass.subject.name,
-                            style: theme.textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            "${nextClass.timeSlot}",
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                                color:
-                                    theme.textTheme.bodyMedium?.color?.withOpacity(0.8)),
-                          )
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-        ),
       ],
     );
   }
@@ -325,7 +256,7 @@ class _HomeScreenState extends State<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Today's Schedule",
+          "Today's Timeline",
           style: theme.textTheme.titleLarge,
         ),
         const SizedBox(height: 12),
@@ -370,59 +301,95 @@ class _HomeScreenState extends State<HomeScreen> {
                     bool isLive = nowInMinutes >= startInMinutes &&
                         nowInMinutes < endInMinutes;
                     bool isPast = nowInMinutes >= endInMinutes;
+                    
+                    double progress = 0.0;
+                    if (isLive) {
+                      progress = (nowInMinutes - startInMinutes) / (endInMinutes - startInMinutes);
+                    }
 
-                    return Row(
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          classInfo.isTheory
-                              ? Icons.book_outlined
-                              : Icons.science_outlined,
-                          color: classInfo.subject.color,
-                          size: 22,
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Text(
-                            classInfo.subject.name,
-                            style: theme.textTheme.bodyLarge,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        if (isLive) ...[
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: AppTheme.secondary.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                  color: AppTheme.secondary, width: 1),
+                        Row(
+                          children: [
+                            Icon(
+                              classInfo.isTheory
+                                  ? Icons.book_outlined
+                                  : Icons.science_outlined,
+                              color: classInfo.subject.color,
+                              size: 22,
                             ),
-                            child: Text(
-                              "LIVE",
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                  color: AppTheme.secondary,
-                                  fontWeight: FontWeight.bold),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Text(
+                                classInfo.subject.name,
+                                style: theme.textTheme.bodyLarge,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                        ] else if (isPast) ...[
-                          Text(
-                            "PAST",
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: Colors.white38,
-                              fontWeight: FontWeight.bold,
+                            const SizedBox(width: 12),
+                            if (isLive) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.secondary.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                      color: AppTheme.secondary, width: 1),
+                                ),
+                                child: Text(
+                                  "LIVE",
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                      color: AppTheme.secondary,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                            ] else if (isPast) ...[
+                              Text(
+                                "PAST",
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: Colors.white38,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                            ],
+                            Text(
+                              classInfo.timeSlot ?? 'N/A',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.textTheme.bodyMedium?.color
+                                    ?.withOpacity(isPast ? 0.5 : 0.8),
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                        ],
-                        Text(
-                          classInfo.timeSlot ?? 'N/A',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.textTheme.bodyMedium?.color
-                                ?.withOpacity(isPast ? 0.5 : 0.8),
-                          ),
+                          ],
                         ),
+                        if (isLive)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: LinearProgressIndicator(
+                              value: progress,
+                              backgroundColor: classInfo.subject.color.withOpacity(0.2),
+                              valueColor: AlwaysStoppedAnimation<Color>(classInfo.subject.color),
+                            ),
+                          ),
+                        if (classInfo.notes != null && classInfo.notes!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0, left: 38),
+                            child: Row(
+                              children: [
+                                Icon(Icons.notes, size: 12, color: Colors.grey[400]),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    classInfo.notes!,
+                                    style: TextStyle(fontSize: 12, color: Colors.grey[400], fontStyle: FontStyle.italic),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                       ],
                     );
                   },

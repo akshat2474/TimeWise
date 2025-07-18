@@ -12,6 +12,7 @@ class ClassInfo {
   final int duration;
   final bool isBlockedSlot;
   final String? timeSlot;
+  final String? notes;
 
   ClassInfo({
     required this.subject,
@@ -19,6 +20,7 @@ class ClassInfo {
     required this.duration,
     this.isBlockedSlot = false,
     this.timeSlot,
+    this.notes,
   });
 
   bool get isTheory => type == ClassType.theory;
@@ -30,6 +32,7 @@ class ClassInfo {
       'duration': duration,
       'isBlockedSlot': isBlockedSlot,
       'timeSlot': timeSlot,
+      'notes': notes,
     };
   }
 
@@ -40,6 +43,7 @@ class ClassInfo {
       duration: json['duration'],
       isBlockedSlot: json['isBlockedSlot'] ?? false,
       timeSlot: json['timeSlot'],
+      notes: json['notes'],
     );
   }
 }
@@ -473,6 +477,7 @@ class TimetableModel extends ChangeNotifier {
             duration: classInfo.duration,
             isBlockedSlot: classInfo.isBlockedSlot,
             timeSlot: entry.key,
+            notes: classInfo.notes,
           ));
         }
       }
