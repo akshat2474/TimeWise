@@ -6,6 +6,7 @@ class Achievement {
   final String description;
   final IconData icon;
   bool isUnlocked;
+  final bool isReAchievable;
 
   Achievement({
     required this.id,
@@ -13,6 +14,7 @@ class Achievement {
     required this.description,
     required this.icon,
     this.isUnlocked = false,
+    this.isReAchievable = false,
   });
 }
 
@@ -35,6 +37,7 @@ class Achievements {
       title: 'Comeback Kid',
       description: 'Improve a subject\'s attendance from below 75% to above.',
       icon: Icons.trending_up_rounded,
+      isReAchievable: true,
     ),
      Achievement(
       id: 'dedicated_student',

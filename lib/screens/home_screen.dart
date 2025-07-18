@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:timewise_dtu/models/subject_model.dart';
 import 'package:timewise_dtu/screens/achievements_screen.dart';
-import 'package:timewise_dtu/screens/subject_details_screen.dart';
 import 'package:timewise_dtu/services/notification_service.dart';
 import 'package:timewise_dtu/theme/app_theme.dart';
 import 'attendance_screen.dart';
@@ -162,8 +161,6 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildTodaysSchedule(context, model),
         const SizedBox(height: 24),
         _buildSubjectsAtRisk(model),
-        const SizedBox(height: 24),
-        _buildAllSubjectsSummary(model),
         const SizedBox(height: 24),
       ],
     );
@@ -481,161 +478,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildAllSubjectsSummary(TimetableModel model) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("All Subjects", style: theme.textTheme.titleLarge),
-        const SizedBox(height: 12),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: model.subjects.length,
-          itemBuilder: (context, index) {
-            final subject = model.subjects[index];
-            final theoryData = model.attendanceData[subject.name]!['theory']!;
-            final practicalData = model.attendanceData[subject.name]!['practical']!;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12.0),
-              child: _buildSummaryCard(subject, theoryData, practicalData),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSummaryCard(Subject subject, AttendanceSummary theoryData, AttendanceSummary practicalData) {
-    final theme = Theme.of(context);
-    return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SubjectDetailsScreen(subject: subject))),
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(subject.name, style: theme.textTheme.titleLarge),
-              const SizedBox(height: 4),
-              Text(subject.creditDescription, style: theme.textTheme.bodyMedium),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  if (theoryData.totalScheduledHours > 0)
-                    Expanded(
-                      child: _buildRadialGauge(
-                        title: 'Theory',
-                        data: theoryData,
-                        color: subject.color,
-                        percentageWithMassBunk: theoryData.percentage,
-                      ),
-                    ),
-                  if (subject.hasPractical && practicalData.totalScheduledHours > 0)
-                    Expanded(
-                      child: _buildRadialGauge(
-                        title: 'Practical',
-                        data: practicalData,
-                        color: subject.color.withGreen(200),
-                        percentageWithMassBunk: practicalData.percentage,
-                      ),
-                    ),
-                ],
-              ),
-              if (theoryData.totalScheduledHours == 0 && (!subject.hasPractical || practicalData.totalScheduledHours == 0))
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 24.0),
-                  child: Center(
-                    child: Text(
-                      'No attendance data yet',
-                      style: theme.textTheme.bodyMedium?.copyWith(fontStyle: FontStyle.italic),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRadialGauge({required String title, required AttendanceSummary data, required Color color, double? percentageWithMassBunk}) {
-    final theme = Theme.of(context);
-    final percentage = data.percentage / 100;
-    final percentageExclMassBunk = data.percentageExclMassBunk;
-
-    final bool hasMassBunk = percentageWithMassBunk != null &&
-        (percentage * 100).toStringAsFixed(1) !=
-            percentageExclMassBunk.toStringAsFixed(1);
-
-    return Column(
-      children: [
-        CircularPercentIndicator(
-          radius: 55.0,
-          lineWidth: 8.0,
-          animation: true,
-          animationDuration: 1200,
-          percent: percentage.isNaN ? 0 : percentage.clamp(0.0, 1.0),
-          center: Text(
-            "${data.percentage.toStringAsFixed(1)}%",
-            style: theme.textTheme.headlineSmall?.copyWith(
-                color: _getPercentageColor(data.percentage),
-                fontWeight: FontWeight.bold),
-          ),
-          circularStrokeCap: CircularStrokeCap.round,
-          progressColor: _getPercentageColor(data.percentage),
-          backgroundColor: theme.colorScheme.surfaceVariant,
-        ),
-        const SizedBox(height: 12),
-        Text(
-          title,
-          style: theme.textTheme.titleMedium?.copyWith(color: color),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          '${data.totalHoursAttended.toStringAsFixed(1)} / ${data.totalScheduledHours.toStringAsFixed(1)}h',
-          style: theme.textTheme.bodyMedium,
-        ),
-        const SizedBox(height: 4),
-        if (hasMassBunk)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 4.0),
-            child: RichText(
-              text: TextSpan(
-                style: theme.textTheme.bodySmall,
-                children: [
-                  const TextSpan(
-                    text: 'w/o bunks: ',
-                    style: TextStyle(color: Colors.orangeAccent),
-                  ),
-                  TextSpan(
-                    text: '${percentageExclMassBunk.toStringAsFixed(1)}%',
-                    style: TextStyle(
-                      color: _getPercentageColor(percentageExclMassBunk),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        if (data.hoursCanMiss > 0)
-          Text(
-            'Can miss: ${data.hoursCanMiss.toStringAsFixed(1)}h',
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: theme.colorScheme.secondary),
-          )
-        else
-          Text(
-            'Cannot miss more',
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: theme.colorScheme.error),
-          ),
       ],
     );
   }

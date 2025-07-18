@@ -405,6 +405,7 @@ class TimetableModel extends ChangeNotifier {
     
     final summary = _attendanceData[subjectName]![classType]!;
     final oldPercentage = summary.percentage;
+    final oldOverallPercentage = getOverallAttendanceSummary().percentage;
 
     final existingIndex = _attendanceRecords.indexWhere((record) =>
         record.subjectName == subjectName &&
@@ -438,7 +439,14 @@ class TimetableModel extends ChangeNotifier {
     summary.addEntry(status, hours);
 
     _updateAttendanceStreak();
-    final newAchievements = await _checkAndUnlockAchievements(subjectName, oldPercentage, summary.percentage);
+    final newAchievements = await _checkAndUnlockAchievements(
+      subjectName: subjectName,
+      oldSubjectPercentage: oldPercentage,
+      newSubjectPercentage: summary.percentage,
+      oldOverallPercentage: oldOverallPercentage,
+      newOverallPercentage: getOverallAttendanceSummary().percentage,
+      markedDate: date,
+    );
 
     save();
     notifyListeners();
@@ -567,7 +575,7 @@ class TimetableModel extends ChangeNotifier {
     dailyStatus.forEach((date, statuses) {
       if (statuses.every((s) => s == AttendanceStatus.present || s == AttendanceStatus.teacherAbsent)) {
         heatmapData[date] = Colors.green;
-      } else if (statuses.every((s) => s == AttendanceStatus.absent || s == AttendanceStatus.massBunk)) {
+      } else if (statuses.any((s) => s == AttendanceStatus.absent || s == AttendanceStatus.massBunk)) {
         heatmapData[date] = Colors.red;
       } else {
         heatmapData[date] = Colors.yellow;
@@ -688,30 +696,83 @@ class TimetableModel extends ChangeNotifier {
     _attendanceStreak = currentStreak;
   }
 
-  Future<List<String>> _checkAndUnlockAchievements(String subjectName, double oldPercentage, double newPercentage) async {
+  Future<List<String>> _checkAndUnlockAchievements({
+    required String subjectName,
+    required double oldSubjectPercentage,
+    required double newSubjectPercentage,
+    required double oldOverallPercentage,
+    required double newOverallPercentage,
+    required DateTime markedDate,
+  }) async {
     List<String> newlyUnlocked = [];
 
-    // Comeback Kid
-    if (oldPercentage < 75 && newPercentage >= 75) {
-      if (_unlockedAchievementIds.add('comeback_kid_1')) {
-        newlyUnlocked.add('Comeback Kid');
-      }
+    // Re-achievable achievements
+    if (oldSubjectPercentage < 75 && newSubjectPercentage >= 75) {
+      newlyUnlocked.add('Comeback Kid');
     }
 
-    // Scholar
-    if (newPercentage > 90) {
-      if (_unlockedAchievementIds.add('scholar_1')) {
-        newlyUnlocked.add('Scholar');
-      }
+    // One-time achievements
+    if (!_unlockedAchievementIds.contains('scholar_1') && newSubjectPercentage > 90) {
+      newlyUnlocked.add('Scholar');
+      _unlockedAchievementIds.add('scholar_1');
+    }
+    if (!_unlockedAchievementIds.contains('dedicated_student') && newOverallPercentage > 85) {
+      newlyUnlocked.add('Dedicated Student');
+      _unlockedAchievementIds.add('dedicated_student');
     }
 
-    // Dedicated Student
-    if (getOverallAttendanceSummary().percentage > 85) {
-      if (_unlockedAchievementIds.add('dedicated_student')) {
-        newlyUnlocked.add('Dedicated Student');
-      }
+    if (!_unlockedAchievementIds.contains('perfect_week') && _isPerfectWeek(markedDate)) {
+        newlyUnlocked.add('Perfect Week');
+        _unlockedAchievementIds.add('perfect_week');
+    }
+
+    if (!_unlockedAchievementIds.contains('perfect_month') && _isPerfectMonth(markedDate)) {
+        newlyUnlocked.add('Perfect Month');
+        _unlockedAchievementIds.add('perfect_month');
     }
 
     return newlyUnlocked;
+  }
+
+  bool _isDayPerfect(DateTime date) {
+    final dayName = DateFormat('EEEE').format(date);
+    if (date.weekday > 5) return true; // Weekends are perfect by default.
+
+    final scheduledClasses = getClassesForDay(dayName);
+    if (scheduledClasses.isEmpty) return true; // No classes, so perfect by default
+
+    final recordsForDay = _attendanceRecords.where((r) {
+      return r.date.year == date.year &&
+             r.date.month == date.month &&
+             r.date.day == date.day;
+    });
+
+    if (recordsForDay.length < scheduledClasses.length) return false; // Not all classes marked
+
+    return recordsForDay.every((record) =>
+        record.status == AttendanceStatus.present ||
+        record.status == AttendanceStatus.teacherAbsent ||
+        record.status == AttendanceStatus.holiday);
+  }
+
+  bool _isPerfectWeek(DateTime date) {
+    // Find Monday of the current week
+    DateTime startOfWeek = date.subtract(Duration(days: date.weekday - 1));
+    for (int i = 0; i < 5; i++) {
+        DateTime currentDay = startOfWeek.add(Duration(days: i));
+        if (!_isDayPerfect(currentDay)) return false;
+    }
+    return true;
+  }
+
+  bool _isPerfectMonth(DateTime date) {
+    final startOfMonth = DateTime(date.year, date.month, 1);
+    final endOfMonth = DateTime(date.year, date.month + 1, 0);
+    for (DateTime currentDay = startOfMonth; currentDay.isBefore(endOfMonth.add(const Duration(days: 1))); currentDay = currentDay.add(const Duration(days: 1))) {
+        if (currentDay.weekday >= 1 && currentDay.weekday <= 5) {
+            if (!_isDayPerfect(currentDay)) return false;
+        }
+    }
+    return true;
   }
 }
