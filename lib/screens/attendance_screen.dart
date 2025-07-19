@@ -6,6 +6,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:timewise_dtu/models/subject_model.dart';
 import 'package:timewise_dtu/screens/home_screen.dart';
+import 'package:timewise_dtu/screens/statistics_screen.dart';
 import 'package:timewise_dtu/screens/subject_details_screen.dart';
 import 'package:timewise_dtu/screens/subject_setup_screen.dart';
 import 'package:timewise_dtu/services/export_service.dart';
@@ -484,6 +485,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     floating: true,
                     actions: [
                       IconButton(
+                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StatisticsScreen())),
+                        icon: const Icon(Icons.pie_chart_outline_rounded),
+                        tooltip: 'View Statistics',
+                      ),
+                      IconButton(
                         onPressed: () => _exportService.exportAttendance(model.attendanceRecords),
                         icon: const Icon(Icons.share),
                         tooltip: 'Export Attendance',
@@ -556,15 +562,26 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 color: theme.colorScheme.secondary, width: 2),
                             shape: BoxShape.circle,
                           ),
+                          markerDecoration: const BoxDecoration(
+                            color: Colors.transparent, 
+                            shape: BoxShape.circle,
+                          ),
                         ),
                         calendarBuilders: CalendarBuilders(
-                          markerBuilder: (context, day, events) {
+                          defaultBuilder: (context, day, focusedDay) {
                             final date = DateTime(day.year, day.month, day.day);
                             if (heatmapData.containsKey(date)) {
                               return Container(
+                                margin: const EdgeInsets.all(4.0),
                                 decoration: BoxDecoration(
                                   color: heatmapData[date]!.withOpacity(0.5),
                                   shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    '${day.day}',
+                                    style: const TextStyle().copyWith(fontSize: 16.0),
+                                  ),
                                 ),
                               );
                             }

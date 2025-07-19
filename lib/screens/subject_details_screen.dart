@@ -28,10 +28,12 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
     if (!widget.subject.hasPractical) {
       _whatIfType = 'theory';
     }
+    _missedClassesController.addListener(_calculateWhatIf);
   }
 
   @override
   void dispose() {
+    _missedClassesController.removeListener(_calculateWhatIf);
     _missedClassesController.dispose();
     super.dispose();
   }
@@ -46,6 +48,10 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
           _whatIfType,
           missedClasses,
         );
+      });
+    } else {
+      setState(() {
+        _whatIfPercentage = null;
       });
     }
   }
@@ -125,26 +131,15 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
               ),
               const SizedBox(height: 16),
             ],
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _missedClassesController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      hintText: 'If I miss \'X\' more classes...',
-                      border: const OutlineInputBorder(),
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton(
-                  onPressed: _calculateWhatIf,
-                  child: const Text('Calculate'),
-                ),
-              ],
+            TextField(
+              controller: _missedClassesController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                hintText: 'If I miss \'X\' more classes...',
+                border: const OutlineInputBorder(),
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 12),
+              ),
             ),
             if (_whatIfPercentage != null)
               Padding(

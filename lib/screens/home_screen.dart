@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:timewise_dtu/screens/statistics_screen.dart';
 import 'package:timewise_dtu/theme/app_theme.dart';
 import 'attendance_screen.dart';
 import '../models/timetable_model.dart';
@@ -107,6 +108,20 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       actions: [
+        if (hasExistingTimetable)
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const StatisticsScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.pie_chart_outline_rounded),
+            tooltip: 'View Statistics',
+            color: Colors.white,
+          ),
         if (hasExistingTimetable)
           IconButton(
             onPressed: () {
