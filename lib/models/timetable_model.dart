@@ -188,7 +188,6 @@ class TimetableModel extends ChangeNotifier {
   Map<String, Map<String, AttendanceSummary>> _attendanceData = {};
   List<AttendanceRecord> _attendanceRecords = [];
   List<Subject> _subjects = [];
-  Set<String> _unlockedAchievementIds = {};
   int _attendanceStreak = 0;
 
   final List<String> _days = [
@@ -219,7 +218,6 @@ class TimetableModel extends ChangeNotifier {
   List<String> get days => _days;
   List<String> get timeSlots => _timeSlots;
   int get attendanceStreak => _attendanceStreak;
-  Set<String> get unlockedAchievementIds => _unlockedAchievementIds;
 
   TimetableModel() {
     load();
@@ -307,11 +305,7 @@ class TimetableModel extends ChangeNotifier {
           };
         }
       }
-
-      final unlockedAchievements = prefs.getStringList('unlocked_achievements');
-      if (unlockedAchievements != null) {
-        _unlockedAchievementIds = unlockedAchievements.toSet();
-      }
+      
 
       _attendanceStreak = prefs.getInt('attendance_streak') ?? 0;
 
@@ -354,8 +348,6 @@ class TimetableModel extends ChangeNotifier {
     }
     await prefs.setString(
         'timewise_attendance_summary', jsonEncode(summaryData));
-    
-    await prefs.setStringList('unlocked_achievements', _unlockedAchievementIds.toList());
     await prefs.setInt('attendance_streak', _attendanceStreak);
   }
 
@@ -706,73 +698,10 @@ class TimetableModel extends ChangeNotifier {
   }) async {
     List<String> newlyUnlocked = [];
 
-    // Re-achievable achievements
-    if (oldSubjectPercentage < 75 && newSubjectPercentage >= 75) {
-      newlyUnlocked.add('Comeback Kid');
-    }
 
-    // One-time achievements
-    if (!_unlockedAchievementIds.contains('scholar_1') && newSubjectPercentage > 90) {
-      newlyUnlocked.add('Scholar');
-      _unlockedAchievementIds.add('scholar_1');
-    }
-    if (!_unlockedAchievementIds.contains('dedicated_student') && newOverallPercentage > 85) {
-      newlyUnlocked.add('Dedicated Student');
-      _unlockedAchievementIds.add('dedicated_student');
-    }
-
-    if (!_unlockedAchievementIds.contains('perfect_week') && _isPerfectWeek(markedDate)) {
-        newlyUnlocked.add('Perfect Week');
-        _unlockedAchievementIds.add('perfect_week');
-    }
-
-    if (!_unlockedAchievementIds.contains('perfect_month') && _isPerfectMonth(markedDate)) {
-        newlyUnlocked.add('Perfect Month');
-        _unlockedAchievementIds.add('perfect_month');
-    }
 
     return newlyUnlocked;
   }
 
-  bool _isDayPerfect(DateTime date) {
-    final dayName = DateFormat('EEEE').format(date);
-    if (date.weekday > 5) return true; // Weekends are perfect by default.
 
-    final scheduledClasses = getClassesForDay(dayName);
-    if (scheduledClasses.isEmpty) return true; // No classes, so perfect by default
-
-    final recordsForDay = _attendanceRecords.where((r) {
-      return r.date.year == date.year &&
-             r.date.month == date.month &&
-             r.date.day == date.day;
-    });
-
-    if (recordsForDay.length < scheduledClasses.length) return false; // Not all classes marked
-
-    return recordsForDay.every((record) =>
-        record.status == AttendanceStatus.present ||
-        record.status == AttendanceStatus.teacherAbsent ||
-        record.status == AttendanceStatus.holiday);
-  }
-
-  bool _isPerfectWeek(DateTime date) {
-    // Find Monday of the current week
-    DateTime startOfWeek = date.subtract(Duration(days: date.weekday - 1));
-    for (int i = 0; i < 5; i++) {
-        DateTime currentDay = startOfWeek.add(Duration(days: i));
-        if (!_isDayPerfect(currentDay)) return false;
-    }
-    return true;
-  }
-
-  bool _isPerfectMonth(DateTime date) {
-    final startOfMonth = DateTime(date.year, date.month, 1);
-    final endOfMonth = DateTime(date.year, date.month + 1, 0);
-    for (DateTime currentDay = startOfMonth; currentDay.isBefore(endOfMonth.add(const Duration(days: 1))); currentDay = currentDay.add(const Duration(days: 1))) {
-        if (currentDay.weekday >= 1 && currentDay.weekday <= 5) {
-            if (!_isDayPerfect(currentDay)) return false;
-        }
-    }
-    return true;
-  }
 }

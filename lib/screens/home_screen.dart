@@ -3,8 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:timewise_dtu/screens/achievements_screen.dart';
-import 'package:timewise_dtu/services/notification_service.dart';
 import 'package:timewise_dtu/theme/app_theme.dart';
 import 'attendance_screen.dart';
 import '../models/timetable_model.dart';
@@ -109,27 +107,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       actions: [
-        IconButton(
-          icon: const Icon(Icons.notifications_on_outlined),
-          tooltip: 'Test Notification',
-          onPressed: () {
-            NotificationService().scheduleTestNotification();
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content:
-                    Text('Test notification scheduled for 1 minute from now.'),
-                backgroundColor: Colors.green,
-              ),
-            );
-          },
-        ),
-        if (hasExistingTimetable)
-          IconButton(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AchievementsScreen())),
-            icon: const Icon(Icons.emoji_events_outlined),
-            tooltip: 'Achievements',
-            color: Colors.white,
-          ),
         if (hasExistingTimetable)
           IconButton(
             onPressed: () {
@@ -305,14 +282,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Text(subject.name, style: theme.textTheme.bodyLarge)),
                   if (theoryAtRisk)
                     Text(
-                      "Th: ${theoryPercentage.toStringAsFixed(1)}%",
+                      "Theory: ${theoryPercentage.toStringAsFixed(1)}%",
                       style: theme.textTheme.bodyMedium
                           ?.copyWith(color: theme.colorScheme.error),
                     ),
                   if (theoryAtRisk && practicalAtRisk) const SizedBox(width: 8),
                   if (practicalAtRisk)
                     Text(
-                      "Pr: ${practicalPercentage.toStringAsFixed(1)}%",
+                      "Practical: ${practicalPercentage.toStringAsFixed(1)}%",
                       style: theme.textTheme.bodyMedium
                           ?.copyWith(color: theme.colorScheme.error),
                     ),
