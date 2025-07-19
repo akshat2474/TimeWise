@@ -707,7 +707,7 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                 ),
               ),
               child: Text(
-                'Next',
+                'Confirm',
                 style: theme.textTheme.labelLarge?.copyWith(
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.5,
@@ -722,6 +722,7 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
 
   Widget _buildSubjectList() {
     final theme = Theme.of(context);
+    final isUpdateEnabled = _subjects.length == _subjectCount;
     return Column(
       children: [
         Row(
@@ -735,146 +736,154 @@ class _SubjectSetupScreenState extends State<SubjectSetupScreen> {
                 ),
               ),
             ),
-            Row(
-              children: [
-                TextButton.icon(
-                  onPressed: _resetSubjectCount,
-                  icon: const Icon(Icons.edit, size: 16),
-                  label: const Text('Edit Count'),
-                  style: TextButton.styleFrom(
-                      foregroundColor: theme.textTheme.bodyMedium?.color),
-                ),
-                if (_subjects.length < _subjectCount)
-                  ElevatedButton.icon(
-                    onPressed: () => _showAddSubjectDialog(),
-                    icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Add'),
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                  ),
-              ],
+            TextButton.icon(
+              onPressed: _resetSubjectCount,
+              icon: const Icon(Icons.edit, size: 16),
+              label: const Text('Edit Count'),
+              style: TextButton.styleFrom(
+                  foregroundColor: theme.textTheme.bodyMedium?.color),
             ),
           ],
         ),
         const SizedBox(height: 16),
         Expanded(
-          child: ListView.builder(
-            itemCount: _subjects.length,
-            itemBuilder: (context, index) {
-              final subject = _subjects[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: subject.color.withOpacity(0.5),
-                      width: 1,
-                    ),
+          child: _subjects.isEmpty
+              ? Center(
+                  child: Text(
+                    'Click "Add Subject" to begin.',
+                    style: theme.textTheme.bodyLarge,
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                )
+              : ListView.builder(
+                  itemCount: _subjects.length,
+                  itemBuilder: (context, index) {
+                    final subject = _subjects[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: subject.color.withOpacity(0.5),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
                           children: [
-                            Text(
-                              subject.name,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              subject.creditDescription,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: Colors.grey[400],
-                                fontSize: 12,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.book,
-                                  color: AppTheme.accentBlue,
-                                  size: 14,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Theory: ${subject.totalTheoryHours}h',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: Colors.grey[400],
-                                    fontSize: 11,
-                                  ),
-                                ),
-                                if (subject.hasPractical) ...[
-                                  const SizedBox(width: 12),
-                                  const Icon(
-                                    Icons.science,
-                                    color: AppTheme.secondary,
-                                    size: 14,
-                                  ),
-                                  const SizedBox(width: 4),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
                                   Text(
-                                    'Practical: ${subject.totalPracticalHours}h',
-                                    style:
-                                        theme.textTheme.bodySmall?.copyWith(
-                                      color: Colors.grey[400],
-                                      fontSize: 11,
+                                    subject.name,
+                                    style: theme.textTheme.titleMedium?.copyWith(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    subject.creditDescription,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: Colors.grey[400],
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.book,
+                                        color: AppTheme.accentBlue,
+                                        size: 14,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'Theory: ${subject.totalTheoryHours}h',
+                                        style:
+                                            theme.textTheme.bodySmall?.copyWith(
+                                          color: Colors.grey[400],
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                      if (subject.hasPractical) ...[
+                                        const SizedBox(width: 12),
+                                        const Icon(
+                                          Icons.science,
+                                          color: AppTheme.secondary,
+                                          size: 14,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'Practical: ${subject.totalPracticalHours}h',
+                                          style: theme.textTheme.bodySmall
+                                              ?.copyWith(
+                                            color: Colors.grey[400],
+                                            fontSize: 11,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
                                 ],
-                              ],
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () => _showAddSubjectDialog(index),
+                              icon: Icon(
+                                Icons.edit,
+                                color: Colors.grey[400],
+                                size: 20,
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () => _showDeleteConfirmation(index),
+                              icon: Icon(
+                                Icons.delete,
+                                color: Colors.red[400],
+                                size: 20,
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      IconButton(
-                        onPressed: () => _showAddSubjectDialog(index),
-                        icon: Icon(
-                          Icons.edit,
-                          color: Colors.grey[400],
-                          size: 20,
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () => _showDeleteConfirmation(index),
-                        icon: Icon(
-                          Icons.delete,
-                          color: Colors.red[400],
-                          size: 20,
-                        ),
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
         ),
         const SizedBox(height: 16),
+        if (_subjects.length < _subjectCount)
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => _showAddSubjectDialog(),
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Add Subject'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+            ),
+          ),
+        const SizedBox(height: 8),
         SizedBox(
           width: double.infinity,
-          child: ElevatedButton(
-            onPressed: _subjects.length == _subjectCount
-                ? _proceedToTimetable
-                : null,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
-            child: Text(
-              widget.isEditing ? 'Update Subjects' : 'Create Timetable',
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.5,
+          child: Opacity(
+            opacity: isUpdateEnabled ? 1.0 : 0.5,
+            child: ElevatedButton(
+              onPressed: isUpdateEnabled ? _proceedToTimetable : null,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: theme.colorScheme.secondary,
+              ),
+              child: Text(
+                widget.isEditing ? 'Update Subjects' : 'Create Timetable',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5,
+                ),
               ),
             ),
           ),

@@ -7,6 +7,7 @@ import 'package:percent_indicator/percent_indicator.dart';
 import 'package:timewise_dtu/models/subject_model.dart';
 import 'package:timewise_dtu/screens/home_screen.dart';
 import 'package:timewise_dtu/screens/subject_details_screen.dart';
+import 'package:timewise_dtu/screens/subject_setup_screen.dart';
 import 'package:timewise_dtu/services/export_service.dart';
 import 'timetable_grid_screen.dart';
 import '../models/timetable_model.dart';
@@ -438,6 +439,19 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     );
   }
 
+  void _editSubjects() {
+    final model = context.read<TimetableModel>();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SubjectSetupScreen(
+          existingSubjects: model.subjects,
+          isEditing: true,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -478,6 +492,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         onPressed: _showEditOptions,
                         icon: const Icon(Icons.edit_calendar_outlined),
                         tooltip: 'Edit Timetable',
+                      ),
+                      IconButton(
+                        onPressed: _editSubjects,
+                        icon: const Icon(Icons.edit_note_outlined),
+                        tooltip: 'Edit Subjects',
                       ),
                     ],
                   ),
